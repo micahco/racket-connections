@@ -1,17 +1,19 @@
 package main
 
 import (
-	"html/template"
 	"log"
-	"net/http"
 )
 
-func rootHandler(w http.ResponseWriter, r *http.Request) {
-	t := template.Must(template.ParseFiles("index.html"))
-	t.Execute(w, nil)
-}
-
 func main() {
-	http.HandleFunc("/", rootHandler)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	store, err := NewPostgresStore()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err := store.Init(); err != nil {
+		log.Fatal(err)
+	}
+
+	server := NewAPIServer(":3000", store)
+	server.Run()
 }
