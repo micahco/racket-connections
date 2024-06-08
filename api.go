@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 type APIServer struct {
@@ -14,118 +12,31 @@ type APIServer struct {
 	store      Storage
 }
 
-func NewAPIServer(listenAddr string, store Storage) *APIServer {
+func NewAPIServer(port string, store Storage) *APIServer {
 	return &APIServer{
-		listenAddr: listenAddr,
+		listenAddr: ":" + port,
 		store:      store,
 	}
 }
 
 func (s *APIServer) Run() {
-	router := mux.NewRouter()
+	http.HandleFunc("/login", makeHTPHandleFunc(s.handleLogin))
+	http.HandleFunc("/signup", makeHTPHandleFunc(s.handleSignup))
 
-	router.HandleFunc("/users", makeHTPHandleFunc(s.handleUsers))
-	router.HandleFunc("/posts", makeHTPHandleFunc(s.handlePosts))
-	router.HandleFunc("/posts/{id}", makeHTPHandleFunc(s.handleGetPost))
-
-	http.ListenAndServe(s.listenAddr, router)
+	fmt.Printf("Listen and serve: http://localhost%s\n", s.listenAddr)
+	http.ListenAndServe(s.listenAddr, nil)
 }
 
-// USERS
-func (s *APIServer) handleUsers(w http.ResponseWriter, r *http.Request) error {
-	switch r.Method {
-	case "GET":
-		return s.handleGetAllUsers(w, r)
-	case "POST":
-		return s.handleCreateUser(w, r)
-	case "PUT":
-		return s.handleUpdateUser(w, r)
-	case "DELETE":
-		return s.handleDeleteUser(w, r)
-	}
-	return methodNotAllowed(r.Method)
-}
-
-func (s *APIServer) handleGetAllUsers(w http.ResponseWriter, r *http.Request) error {
-	users, err := s.store.GetUsers()
-	if err != nil {
-		return err
-	}
-
-	return WriteJSON(w, http.StatusOK, users)
-}
-
-func (s *APIServer) handleCreateUser(w http.ResponseWriter, r *http.Request) error {
-	var req CreateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return err
-	}
-
-	createdUser, err := s.store.CreateUser(req)
-	if err != nil {
-		return err
-	}
-
-	return WriteJSON(w, http.StatusCreated, createdUser)
-}
-
-func (s *APIServer) handleUpdateUser(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func (s *APIServer) handleDeleteUser(w http.ResponseWriter, r *http.Request) error {
-	var req CreateUserRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return err
-	}
-	return nil
-}
-
-// POSTS
-func (s *APIServer) handlePosts(w http.ResponseWriter, r *http.Request) error {
-	switch r.Method {
-	case "GET":
-		return s.handleGetAllPosts(w, r)
-	case "POST":
-		return s.handleCreatePost(w, r)
-	case "PUT":
-		return s.handleUpdatePost(w, r)
-	case "DELETE":
-		return s.handleUpdatePost(w, r)
-	}
-	return methodNotAllowed(r.Method)
-}
-
-func (s *APIServer) handleGetPost(w http.ResponseWriter, r *http.Request) error {
-	id := mux.Vars(r)["id"]
-	fmt.Println(id)
-	return nil
-}
-
-func (s *APIServer) handleGetAllPosts(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func (s *APIServer) handleCreatePost(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func (s *APIServer) handleUpdatePost(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-func (s *APIServer) handleDeletePost(w http.ResponseWriter, r *http.Request) error {
-	return nil
-}
-
-// Helper functions
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
 	return json.NewEncoder(w).Encode(v)
 }
 
-type apiFunc func(http.ResponseWriter, *http.Request) error
+func WriteNoContent(w http.ResponseWriter) error {
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
 
 type APIError struct {
 	error
@@ -136,9 +47,9 @@ func NewAPIError(err error, status int) APIError {
 	return APIError{err, status}
 }
 
-func methodNotAllowed(method string) APIError {
+func methodNotAllowedErr(method string) APIError {
 	err := fmt.Errorf("method not allowed: %s", method)
-	return NewAPIError(err, http.StatusBadRequest)
+	return NewAPIError(err, http.StatusMethodNotAllowed)
 }
 
 func (e APIError) Unwrap() error {
@@ -149,15 +60,54 @@ func (e APIError) HTTPStatus() int {
 	return e.status
 }
 
+type apiFunc func(http.ResponseWriter, *http.Request) error
+
 func makeHTPHandleFunc(f apiFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := f(w, r); err != nil {
 			status := http.StatusInternalServerError
+
+			// check if error is API error
 			var apiErr APIError
 			if errors.As(err, &apiErr) {
 				status = apiErr.HTTPStatus()
 			}
+
 			http.Error(w, err.Error(), status)
 		}
+	}
+}
+
+func withSessionAuth(handlerFunc http.HandlerFunc, s Storage) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("authenticating...")
+
+		c, err := r.Cookie("session_token")
+		if err != nil {
+			if err == http.ErrNoCookie {
+				// If the cookie is not set, return an unauthorized status
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			// For any other type of error, return a bad request status
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		sessionID := c.Value
+
+		// We then get the name of the user from our session map, where we set the session token
+		userSession, err := s.GetSession(sessionID)
+		if err != nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		if userSession.isExpired() {
+			//delete(sessions, sessionToken)
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		handlerFunc(w, r)
 	}
 }
