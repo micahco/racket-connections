@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/joho/godotenv"
 )
 
@@ -16,8 +17,9 @@ type config struct {
 }
 
 type application struct {
-	config config
-	store  store
+	config  config
+	session *scs.SessionManager
+	store   store
 }
 
 func main() {
@@ -50,8 +52,9 @@ func main() {
 
 	// Create the app and start the server
 	app := &application{
-		config: cfg,
-		store:  pg,
+		config:  cfg,
+		session: scs.New(),
+		store:   pg,
 	}
 
 	app.serve()

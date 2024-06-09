@@ -1,103 +1,29 @@
 package main
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
-	"html/template"
 	"net/http"
-	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
-const (
-	BASE_TEMPLATE       = "base.html"
-	MIN_PASSWORD_LEN    = 8
-	MAX_PASSWORD_LEN    = 72
-	SESSION_COOKIE_NAME = "session_token"
-)
-
-// render nested template (filename) in config.templateDir with base template
-func (app *application) renderTemplate(w http.ResponseWriter, filename string, data any) error {
-	base := filepath.Join(app.config.templatesDir, BASE_TEMPLATE)
-	tmpl := filepath.Join(app.config.templatesDir, filename)
-
-	t, err := template.ParseFiles(base, tmpl)
-	if err != nil {
-		return fmt.Errorf("unable to parse template: %w", err)
-	}
-
-	return t.Execute(w, data)
-}
-
-func (app *application) readSession(r *http.Request) error {
-	// Read session id from cookie
-	c, err := r.Cookie(SESSION_COOKIE_NAME)
-	if err != nil {
-		return err
-	}
-	sessionID := c.Value
-
-	// Get session from database
-	userSession, err := app.store.getSession(sessionID)
-	if err != nil {
-		return err
-	}
-
-	if userSession.isExpired() {
-		return errors.New("session expired")
-	}
-
-	return nil
-}
-
-func (app *application) writeSession(w http.ResponseWriter, u *user) {
-	// Create new session id and expiry
-	sesionID := uuid.NewString()
-	expiry := time.Now().Add(time.Hour)
-
-	// Save session to database
-	app.store.createSession(sesionID, u.id, expiry)
-
-	// Add set cookie header with new session id
-	http.SetCookie(w, &http.Cookie{
-		Name:    SESSION_COOKIE_NAME,
-		Value:   sesionID,
-		Path:    "/",
-		Expires: expiry,
-	})
-}
-
-// GET /
 func (app *application) handleGetIndex(w http.ResponseWriter, r *http.Request) {
-	if err := app.readSession(r); err != nil {
-		err := app.renderTemplate(w, "welcome.html", nil)
-		if err != nil {
-			panic(err)
-		}
-
-		return
+	err := app.renderTemplate(w, "welcome.html", nil)
+	if err != nil {
+		panic(err)
 	}
-
-	// show posts
 }
 
-// GET /login
 func (app *application) handleGetLogin(w http.ResponseWriter, r *http.Request) {
-	if err := app.readSession(r); err != nil {
-		err := app.renderTemplate(w, "login.html", nil)
-		if err != nil {
-			panic(err)
-		}
-
-		return
+	err := app.renderTemplate(w, "login.html", nil)
+	if err != nil {
+		panic(err)
 	}
-
-	// Already authenticated. Redirect to index
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 type loginRequest struct {
@@ -105,7 +31,6 @@ type loginRequest struct {
 	password string
 }
 
-// POST /login
 func (app *application) handlePostLogin(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -128,7 +53,12 @@ func (app *application) handlePostLogin(w http.ResponseWriter, r *http.Request) 
 		panic(httpError{err, http.StatusUnauthorized})
 	}
 
-	app.writeSession(w, user)
+	err = app.session.RenewToken(r.Context())
+	if err != nil {
+		panic(httpError{err, http.StatusInternalServerError})
+	}
+
+	app.session.Put(r.Context(), "userID", user.id)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -139,8 +69,51 @@ type signupRequest struct {
 	password string
 }
 
-// POST /signup
-func (app *application) handleSignupPost(w http.ResponseWriter, r *http.Request) {
+const (
+	OSU_DOMAIN       = "oregonstate.edu"
+	MIN_PASSWORD_LEN = 8
+	MAX_PASSWORD_LEN = 72
+)
+
+func validateSignupRequest(req signupRequest) error {
+	_, domain, found := strings.Cut(req.email, "@")
+	if !found || domain != OSU_DOMAIN {
+		return errors.New("invalid domain")
+	}
+
+	if len(req.password) < MIN_PASSWORD_LEN {
+		return fmt.Errorf("password too short (min: %d)", MIN_PASSWORD_LEN)
+	}
+
+	if len(req.password) > MAX_PASSWORD_LEN {
+		return fmt.Errorf("password too long (max: %d)", MAX_PASSWORD_LEN)
+	}
+
+	return nil
+}
+
+func (app *application) handleGetSignup(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func generateRandomToken(length int) (string, error) {
+	b := make([]byte, length)
+
+	// Read random bytes from the cryptographic random number generator
+	_, err := rand.Read(b)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode random bytes to base64 string
+	token := base64.URLEncoding.EncodeToString(b)
+
+	// Return the token
+	return token, nil
+}
+
+func (app *application) handlePostSignup(w http.ResponseWriter, r *http.Request) {
+	// Parse from to signup request
 	err := r.ParseForm()
 	if err != nil {
 		panic(httpError{err, http.StatusBadRequest})
@@ -155,36 +128,42 @@ func (app *application) handleSignupPost(w http.ResponseWriter, r *http.Request)
 		panic(httpError{err, http.StatusUnauthorized})
 	}
 
-	hash, err := bcrypt.GenerateFromPassword([]byte(req.password), bcrypt.DefaultCost)
+	// Create user with signup request
+	user, err := app.store.createUser(req)
 	if err != nil {
 		err = errors.New("permission denied")
 		panic(httpError{err, http.StatusUnauthorized})
 	}
 
-	user, err := app.store.createUser(req, hash)
+	// Generate email verification token
+	token, err := generateRandomToken(32)
 	if err != nil {
-		err = errors.New("permission denied")
-		panic(httpError{err, http.StatusUnauthorized})
+		panic(httpError{err, http.StatusInternalServerError})
 	}
 
-	app.writeSession(w, user)
+	expiry := time.Now().Add(5 * time.Minute)
+	v, err := app.store.createVerification(user.email, token, expiry)
+	if err != nil {
+		panic(httpError{err, http.StatusInternalServerError})
+	}
+
+	// send email to user with token
+	fmt.Println("email:", v.email, "\ntoken:", v.token)
+
+	app.session.Put(r.Context(), "userID", user.id)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func validateSignupRequest(req signupRequest) error {
-	_, after, found := strings.Cut(req.email, "@")
-	if !found || after != "oregonstate.edu" {
-		return errors.New("permission denied")
-	}
+func (app *application) handleGetLogout(w http.ResponseWriter, r *http.Request) {
+	app.session.Remove(r.Context(), "userID")
 
-	if len(req.password) < MIN_PASSWORD_LEN {
-		return fmt.Errorf("password too short (min: %d)", MIN_PASSWORD_LEN)
-	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
 
-	if len(req.password) > MIN_PASSWORD_LEN {
-		return fmt.Errorf("password too long (max: %d)", MIN_PASSWORD_LEN)
+func (app *application) handleGetForgot(w http.ResponseWriter, r *http.Request) {
+	err := app.renderTemplate(w, "forgot.html", nil)
+	if err != nil {
+		panic(err)
 	}
-
-	return nil
 }

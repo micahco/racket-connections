@@ -1,3 +1,5 @@
+*.rest
+*.http
 *.env
 *.http
 bin/

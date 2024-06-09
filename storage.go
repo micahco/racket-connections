@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -11,16 +12,15 @@ import (
 
 type store interface {
 	// Users
-	createUser(req signupRequest, hash []byte) (*user, error)
+	createUser(req signupRequest) (*user, error)
 	getUsers() ([]*user, error)
 	getUserByID(id int) (*user, error)
 	getUserByEmail(email string) (*user, error)
 	updateUser(user *user) error
 	deleteUser(id int) error
 
-	// Sessions
-	createSession(uuid string, userID int, expiry time.Time) (*session, error)
-	getSession(uuid string) (*session, error)
+	// Verifications
+	createVerification(email string, token string, expiry time.Time) (*verification, error)
 }
 
 type pgStore struct {
@@ -61,16 +61,16 @@ func (db *pgStore) init() error {
 	db.Exec(context.Background(), "CREATE EXTENSION citext;")
 
 	if err := db.createUsersTable(); err != nil {
-		return err
+		return fmt.Errorf("create users: %w", err)
 	}
-	if err := db.createSessionsTable(); err != nil {
-		return err
+	if err := db.createVerificationsTable(); err != nil {
+		return fmt.Errorf("create verifications: %w", err)
 	}
 	if err := db.createSportsTable(); err != nil {
-		return err
+		return fmt.Errorf("create sports: %w", err)
 	}
 	if err := db.createPostsTable(); err != nil {
-		return err
+		return fmt.Errorf("create posts: %w", err)
 	}
 
 	return nil
@@ -80,6 +80,7 @@ func (db *pgStore) createUsersTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS users (
 		id BIGSERIAL PRIMARY KEY,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+		is_verified BOOLEAN DEFAULT FALSE,
 		name TEXT NOT NULL,
 		email CITEXT UNIQUE NOT NULL,
 		password_hash VARCHAR(100) NOT NULL
@@ -88,11 +89,12 @@ func (db *pgStore) createUsersTable() error {
 	return err
 }
 
-func (db *pgStore) createSessionsTable() error {
-	sql := `CREATE TABLE IF NOT EXISTS sessions (
-		id UUID NOT NULL PRIMARY KEY,
-		user_id INT REFERENCES users(id) NOT NULL,
-		expiry TIMESTAMPTZ NOT NULL
+func (db *pgStore) createVerificationsTable() error {
+	sql := `CREATE TABLE IF NOT EXISTS verifications (
+		email CITEXT NOT NULL PRIMARY KEY,
+		token VARCHAR(100) NOT NULL,
+		expiry TIMESTAMPTZ NOT NULL,
+		FOREIGN KEY (email) REFERENCES users(email) ON DELETE CASCADE
 	);`
 	_, err := db.Exec(context.Background(), sql)
 	return err
@@ -111,8 +113,10 @@ func (db *pgStore) createPostsTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS posts (
 		id BIGSERIAL PRIMARY KEY,
 		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-		user_id INT REFERENCES users(id) NOT NULL,
-		sport_id INT REFERENCES sports(id) NOT NULL
+		user_id INT NOT NULL,
+		sport_id INT NOT NULL,
+		FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+		FOREIGN KEY (sport_id) REFERENCES sports(id) ON DELETE CASCADE
 	);`
 	_, err := db.Exec(context.Background(), sql)
 	return err

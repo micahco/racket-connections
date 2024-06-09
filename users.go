@@ -8,11 +8,13 @@ import (
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type user struct {
 	id           int
 	createdAt    time.Time
+	isVerified   bool
 	name         string
 	email        string
 	passwordHash string
@@ -23,6 +25,7 @@ func scanUser(row pgx.CollectableRow) (*user, error) {
 	err := row.Scan(
 		&u.id,
 		&u.createdAt,
+		&u.isVerified,
 		&u.name,
 		&u.email,
 		&u.passwordHash)
@@ -30,7 +33,12 @@ func scanUser(row pgx.CollectableRow) (*user, error) {
 	return &u, err
 }
 
-func (db *pgStore) createUser(req signupRequest, hash []byte) (*user, error) {
+func (db *pgStore) createUser(req signupRequest) (*user, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(req.password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
 	sql := `INSERT INTO users
 		(name, email, password_hash)
 		VALUES($1, $2, $3) RETURNING *;`
@@ -107,5 +115,5 @@ func (db *pgStore) deleteUser(id int) error {
 		return err
 	}
 
-	return err
+	return nil
 }
