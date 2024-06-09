@@ -1,5 +1,8 @@
 build:
 	@go build -o bin/server
 
-run: build
+docker:
+	@docker start racket-connections
+
+run: docker build
 	./bin/server

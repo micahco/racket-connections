@@ -9,26 +9,31 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Storage interface {
-	// users
-	CreateUser(req SignupRequest, hash []byte) (*User, error)
-	GetUsers() ([]*User, error)
-	GetUserByID(id int) (*User, error)
-	GetUserByEmail(email string) (*User, error)
-	UpdateUser(user *User) error
-	DeleteUser(id int) error
+type store interface {
+	// Users
+	createUser(req signupRequest, hash []byte) (*user, error)
+	getUsers() ([]*user, error)
+	getUserByID(id int) (*user, error)
+	getUserByEmail(email string) (*user, error)
+	updateUser(user *user) error
+	deleteUser(id int) error
 
-	// sessions
-	CreateSession(sessionID string, userID int, expiry time.Time) (*Session, error)
-	GetSession(uuid string) (*Session, error)
+	// Sessions
+	createSession(uuid string, userID int, expiry time.Time) (*session, error)
+	getSession(uuid string) (*session, error)
 }
 
-type PostgresStore struct {
-	p *pgxpool.Pool
+type pgStore struct {
+	*pgxpool.Pool
 }
 
-func NewPostgresStore(connString string) (*PostgresStore, error) {
-	dbpool, err := pgxpool.New(context.Background(), connString)
+func newPgStore(dsn string) (*pgStore, error) {
+	config, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	dbpool, err := pgxpool.NewWithConfig(context.Background(), config)
 	if err != nil {
 		return nil, err
 	}
@@ -37,31 +42,9 @@ func NewPostgresStore(connString string) (*PostgresStore, error) {
 		return nil, err
 	}
 
-	return &PostgresStore{p: dbpool}, nil
+	return &pgStore{dbpool}, nil
 }
 
-func (s *PostgresStore) Init() error {
-	// reset
-	s.p.Exec(context.Background(), "DROP SCHEMA public CASCADE;")
-	s.p.Exec(context.Background(), "CREATE SCHEMA public;")
-
-	if err := s.createUsersTable(); err != nil {
-		return err
-	}
-	if err := s.createSessionsTable(); err != nil {
-		return err
-	}
-	if err := s.createSportsTable(); err != nil {
-		return err
-	}
-	if err := s.createPostsTable(); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// https://github.com/jackc/pgx/wiki/Error-Handling
 func pgErrCode(err error) string {
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
@@ -71,45 +54,66 @@ func pgErrCode(err error) string {
 	return ""
 }
 
-func (s *PostgresStore) createUsersTable() error {
+func (db *pgStore) init() error {
+	// reset
+	db.Exec(context.Background(), "DROP SCHEMA public CASCADE;")
+	db.Exec(context.Background(), "CREATE SCHEMA public;")
+	db.Exec(context.Background(), "CREATE EXTENSION citext;")
+
+	if err := db.createUsersTable(); err != nil {
+		return err
+	}
+	if err := db.createSessionsTable(); err != nil {
+		return err
+	}
+	if err := db.createSportsTable(); err != nil {
+		return err
+	}
+	if err := db.createPostsTable(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (db *pgStore) createUsersTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS users (
-		user_id SERIAL PRIMARY KEY,
-		email VARCHAR (200) UNIQUE NOT NULL,
-		first_name VARCHAR (200) NOT NULL,
-		last_name VARCHAR (200) NOT NULL,
-		created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+		id BIGSERIAL PRIMARY KEY,
+		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+		name TEXT NOT NULL,
+		email CITEXT UNIQUE NOT NULL,
 		password_hash VARCHAR(100) NOT NULL
 	);`
-	_, err := s.p.Exec(context.Background(), sql)
+	_, err := db.Exec(context.Background(), sql)
 	return err
 }
 
-func (s *PostgresStore) createSessionsTable() error {
+func (db *pgStore) createSessionsTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS sessions (
-		session_id UUID NOT NULL PRIMARY KEY,
-		user_id INT REFERENCES users(user_id) NOT NULL,
+		id UUID NOT NULL PRIMARY KEY,
+		user_id INT REFERENCES users(id) NOT NULL,
 		expiry TIMESTAMPTZ NOT NULL
 	);`
-	_, err := s.p.Exec(context.Background(), sql)
+	_, err := db.Exec(context.Background(), sql)
 	return err
 }
 
-func (s *PostgresStore) createSportsTable() error {
+func (db *pgStore) createSportsTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS sports (
-		sport_id SERIAL PRIMARY KEY,
-		sport_name VARCHAR(200) UNIQUE NOT NULL
+		id BIGSERIAL PRIMARY KEY,
+		sport_name TEXT UNIQUE NOT NULL
 	);`
-	_, err := s.p.Exec(context.Background(), sql)
+	_, err := db.Exec(context.Background(), sql)
 	return err
 }
 
-func (s *PostgresStore) createPostsTable() error {
+func (db *pgStore) createPostsTable() error {
 	sql := `CREATE TABLE IF NOT EXISTS posts (
-		post_id SERIAL PRIMARY KEY,
-		user_id INT REFERENCES users(user_id) NOT NULL,
-		sport_id INT REFERENCES sports(sport_id) NOT NULL,
-		created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+		id BIGSERIAL PRIMARY KEY,
+		created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+		user_id INT REFERENCES users(id) NOT NULL,
+		sport_id INT REFERENCES sports(id) NOT NULL
 	);`
-	_, err := s.p.Exec(context.Background(), sql)
+	_, err := db.Exec(context.Background(), sql)
 	return err
 }
