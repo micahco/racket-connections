@@ -85,9 +85,9 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 		}
 	}
 
-	// if !user.IsVerified {
-	// 	return 0, ErrNotVerified
-	// }
+	if !user.IsVerified {
+		return 0, ErrNotVerified
+	}
 
 	return user.ID, nil
 }

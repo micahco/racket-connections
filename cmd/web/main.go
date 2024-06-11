@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"html/template"
 	"log"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/micahco/racket-connections/internal/models"
 )
 
@@ -41,11 +43,6 @@ func main() {
 	}
 	defer pool.Close()
 
-	err = createTables(pool)
-	if err != nil {
-		errorLog.Fatal(err)
-	}
-
 	templateCache, err := newTemplateCache()
 	if err != nil {
 		errorLog.Fatal(err)
@@ -73,4 +70,22 @@ func main() {
 	infoLog.Printf("Starting server on %s", *addr)
 	err = srv.ListenAndServe()
 	errorLog.Fatal(err)
+}
+
+func newPool(dsn string) (*pgxpool.Pool, error) {
+	config, err := pgxpool.ParseConfig(dsn)
+	if err != nil {
+		return nil, err
+	}
+
+	pool, err := pgxpool.NewWithConfig(context.Background(), config)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := pool.Ping(context.Background()); err != nil {
+		return nil, err
+	}
+
+	return pool, nil
 }
