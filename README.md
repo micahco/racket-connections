@@ -2,4 +2,4 @@
 
 ## Notes
 
-* docker run --name postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres
+* go run ./cmd/web -dsn=postgres://postgres:postgres@localhost:5432/postgres

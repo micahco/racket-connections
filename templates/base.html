@@ -1,0 +1,37 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{template "title" .}}</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+    <header>
+        <h1><a href="/">Racket Connections</a></h1>
+    </header>
+    <nav>
+        <!-- Toggle the links based on authentication status -->
+        {{if .IsAuthenticated}}
+            <form action='/user/logout' method='POST'>
+                <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+                <button>Logout</button>
+            </form>
+        {{else}}
+            <a href='/user/login'>Login</a>
+        {{end}}
+    </nav>
+    <main>
+        {{with .Flash}}
+        <div class='flash'>{{.}}</div>
+        {{end}}
+        {{range .Errors}}
+        <div class='error'>{{.}}</div>
+        {{end}}
+        {{template "main" .}}
+    </main>
+    <footer>Powered by Go in {{.CurrentYear}}</footer>
+</body>
+</html>
+{{end}}

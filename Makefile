@@ -1,8 +1,5 @@
-build:
-	@go build -o bin/server
-
 docker:
 	@docker start racket-connections
 
-run: docker build
-	./bin/server
+run: docker
+	go run ./cmd/web -dsn=postgres://postgres:postgres@localhost:5432/postgres
