@@ -7,11 +7,11 @@ import (
 )
 
 func (app *application) sendMail(to, subject, html string) error {
-	app.infoLog.Println(html)
+	if !app.isProduction {
+		app.infoLog.Println("sendMail:", html)
 
-	return nil
-
-	// TESTING
+		return nil
+	}
 
 	if err := app.smtpClient.Mail(app.fromAddress.Address); err != nil {
 		return err
@@ -52,7 +52,7 @@ func (app *application) sendMail(to, subject, html string) error {
 func newSMTPClient(host, port, user, pass string) (*smtp.Client, error) {
 	smtpAddr := fmt.Sprintf("%s:%s", host, port)
 	conn, err := tls.Dial("tcp", smtpAddr, &tls.Config{
-		InsecureSkipVerify: true,
+		InsecureSkipVerify: false,
 		ServerName:         host,
 	})
 	if err != nil {

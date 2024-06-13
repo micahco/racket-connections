@@ -1,7 +1,126 @@
-form label {
-    display: block;
+/*
+    RESET
+*/
+*, *::before, *::after {
+    box-sizing: border-box;
 }
 
-.error {
-    color: red;
+* {
+    margin: 0;
+}
+
+body {
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+
+input, button, textarea, select {
+    font: inherit;
+}
+
+p, h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+}
+
+#root, #__next {
+    isolation: isolate;
+}
+
+/*
+    MAIN
+*/
+
+:root {
+    --color-orange: orange;
+}
+  
+
+body {
+    max-width: 52rem;
+    margin: 0 auto;
+    padding: 0 2rem;
+    font-family: sans-serif;
+}
+
+h1, h2, h3 {
+    margin-bottom: 0.5rem;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+header {
+    padding-top: 2rem;
+}
+
+header h1 > a {
+    font-size: 2rem;
+    font-weight: bold;
+    color: orange;
+}
+
+main {
+    padding: 2rem 0;
+}
+
+.flash {
+    padding-bottom: 1rem;
+}
+
+section {
+    display: flex;
+}
+
+section.homepage {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    column-gap: 3rem;
+    row-gap: 2rem;
+    padding: 2rem 0;
+}
+
+div.form-container {
+    background-color: #f0f0f0;
+    border-radius: 1rem;
+    padding: 1.5rem;
+}
+
+form.user {
+    padding-top: 1rem;
+}
+
+form.user {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+}
+
+form.user > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+form.user > div > input {
+    flex-grow: 1;
+}
+
+form.user > div > input[type="email"] {
+    width: 16rem;
+}
+
+form.user input[type="submit"] {
+    align-self: stretch;
 }

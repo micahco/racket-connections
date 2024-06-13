@@ -12,8 +12,9 @@ pg-reset:
 pg-init:
 	cat ./sql/init.sql | docker exec -i racket-connections psql -U postgres -d postgres
 
+
 run: docker-start pg-reset pg-init
-	go run ./cmd/web \
+	go run . \
 		-dsn=postgres://postgres:${RC_DB_PASS}@localhost:5432/postgres \
 		-smtp-host=${RC_SMTP_HOST} \
 		-smtp-pass=${RC_SMTP_PASS} \

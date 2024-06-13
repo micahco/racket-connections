@@ -2,8 +2,10 @@ package main
 
 import (
 	"bytes"
+	"embed"
 	"fmt"
 	"html/template"
+	"io/fs"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -64,10 +66,13 @@ var functions = template.FuncMap{
 	"humanDate": humanDate,
 }
 
+//go:embed templates
+var fsys embed.FS
+
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
 
-	pages, err := filepath.Glob("./templates/pages/*.html")
+	pages, err := fs.Glob(fsys, "templates/pages/*.html")
 	if err != nil {
 		return nil, err
 	}
@@ -75,17 +80,13 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
-		ts, err := template.New(name).Funcs(functions).ParseFiles("./templates/base.html")
-		if err != nil {
-			return nil, err
+		patterns := []string{
+			"templates/base.html",
+			"templates/partials/*.html",
+			page,
 		}
 
-		ts, err = ts.ParseGlob("./templates/partials/*.html")
-		if err != nil {
-			return nil, err
-		}
-
-		ts, err = ts.ParseFiles(page)
+		ts, err := template.New(name).Funcs(functions).ParseFS(fsys, patterns...)
 		if err != nil {
 			return nil, err
 		}

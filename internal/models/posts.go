@@ -11,9 +11,9 @@ import (
 
 type Post struct {
 	ID      int
-	Created time.Time
 	UserID  int
 	SportID int
+	Created time.Time
 }
 
 type PostModel struct {
@@ -24,9 +24,9 @@ func scanPost(row pgx.CollectableRow) (*Post, error) {
 	var p Post
 	err := row.Scan(
 		&p.ID,
-		&p.Created,
 		&p.UserID,
-		&p.SportID)
+		&p.SportID,
+		&p.Created)
 	return &p, err
 }
 

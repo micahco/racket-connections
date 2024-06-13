@@ -1,10 +1,12 @@
 package main
 
 import (
+	"embed"
 	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/micahco/racket-connections/internal/crypto"
@@ -20,8 +22,7 @@ func (app *application) routes() http.Handler {
 
 	r.NotFound(handleNotFound)
 
-	fs := http.FileServer(http.Dir("./static/"))
-	r.Handle("/static/*", http.StripPrefix("/static", fs))
+	r.Handle("/static/*", app.getStaticHandler())
 
 	r.Get("/favicon.ico", handleFavicon)
 
@@ -67,6 +68,18 @@ func (app *application) routes() http.Handler {
 	return r
 }
 
+//go:embed static
+var staticFS embed.FS
+
+func (app *application) getStaticHandler() http.Handler {
+	if app.isProduction {
+		return http.FileServer(http.FS(staticFS))
+	}
+
+	fs := http.FileServer(http.Dir("./static/"))
+	return http.StripPrefix("/static", fs)
+}
+
 // Errors
 
 func (app *application) serverError(w http.ResponseWriter, err error) {
@@ -95,7 +108,7 @@ func handleNotFound(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleFavicon(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./static/favicon.ico")
+	http.ServeFile(w, r, "./ui/static/favicon.ico")
 }
 
 func (app *application) handleIndexGet(w http.ResponseWriter, r *http.Request) {
@@ -103,13 +116,7 @@ func (app *application) handleIndexGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) handleUserLoginGet(w http.ResponseWriter, r *http.Request) {
-	if app.isAuthenticated(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-
-		return
-	}
-
-	app.render(w, http.StatusOK, "user-login.html", app.newTemplateData(r))
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 type userLoginForm struct {
@@ -167,13 +174,11 @@ func (app *application) handleUserLogoutPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	app.flash(r, "You have been logged out successfully!")
-
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) handleUserSignupGet(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 type userSignupForm struct {
@@ -194,12 +199,32 @@ func (app *application) handleUserSignupPost(w http.ResponseWriter, r *http.Requ
 	form.Validate(validator.NotBlank(form.email), "invalid email: cannot be blank")
 	form.Validate(validator.Matches(form.email, validator.EmailRX), "invalid email: must be a valid email address")
 	form.Validate(validator.MaxChars(form.email, 254), "invalid email: must be no more than 254 characters long")
-	//form.Validate(validator.PermittedEmailDomain(form.email, "oregonstate.edu"), "invalid email: must be an OSU email address")
+	form.Validate(validator.PermittedEmailDomain(form.email, "oregonstate.edu"), "invalid email: must be an OSU email address")
 
 	if !form.IsValid() {
 		validationError(w, form.Validator)
 
 		return
+	}
+
+	// Check if link verification has already been created
+	v, err := app.verifications.Get(form.email)
+	if err != nil && err != models.ErrNoRecord {
+		app.serverError(w, err)
+
+		return
+	}
+
+	// Don't send a new link if less than 5 minutes since last
+	if v != nil {
+		min := 5 * time.Minute
+		if time.Since(v.CreatedAt) < min {
+			app.flash(r, "A link to activate your account has been emailed to the address provided.")
+
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+
+			return
+		}
 	}
 
 	token, err := crypto.GenerateRandomString(32)

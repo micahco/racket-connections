@@ -13,10 +13,10 @@ import (
 
 type User struct {
 	ID           int
-	CreatedAt    time.Time
 	Name         string
 	Email        string
 	PasswordHash []byte
+	CreatedAt    time.Time
 }
 
 type UserModel struct {
@@ -27,10 +27,10 @@ func scanUser(row pgx.CollectableRow) (*User, error) {
 	var u User
 	err := row.Scan(
 		&u.ID,
-		&u.CreatedAt,
 		&u.Name,
 		&u.Email,
-		&u.PasswordHash)
+		&u.PasswordHash,
+		&u.CreatedAt)
 
 	return &u, err
 }

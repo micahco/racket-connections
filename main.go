@@ -19,6 +19,7 @@ import (
 
 type application struct {
 	url            string
+	isProduction   bool
 	errorLog       *log.Logger
 	infoLog        *log.Logger
 	posts          *models.PostModel
@@ -40,6 +41,7 @@ func main() {
 	smtpPort := flag.String("smtp-port", "", "SMTP port")
 	smtpUser := flag.String("smtp-user", "", "SMTP username")
 	smtpPass := flag.String("smtp-pass", "", "SMTP password")
+	prod := flag.Bool("prod", false, "Production mode")
 
 	flag.Parse()
 
@@ -62,19 +64,18 @@ func main() {
 	sm.Store = pgxstore.New(pool)
 	sm.Lifetime = 12 * time.Hour
 
-	sc, err := newSMTPClient(*smtpHost, *smtpPort, *smtpUser, *smtpPass)
-	if err != nil {
-		errorLog.Fatal(err)
-	}
-	defer sc.Close()
-
-	from := &mail.Address{
-		Name:    "Racket Connections",
-		Address: *smtpUser,
+	var sc *smtp.Client
+	if *prod {
+		sc, err = newSMTPClient(*smtpHost, *smtpPort, *smtpUser, *smtpPass)
+		if err != nil {
+			errorLog.Fatal(err)
+		}
+		defer sc.Close()
 	}
 
 	app := &application{
 		url:            "https://localhost" + *addr,
+		isProduction:   *prod,
 		errorLog:       errorLog,
 		infoLog:        infoLog,
 		posts:          &models.PostModel{Pool: pool},
@@ -83,7 +84,10 @@ func main() {
 		templateCache:  tc,
 		sessionManager: sm,
 		smtpClient:     sc,
-		fromAddress:    from,
+		fromAddress: &mail.Address{
+			Name:    "Racket Connections",
+			Address: *smtpUser,
+		},
 	}
 
 	srv := &http.Server{

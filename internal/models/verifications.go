@@ -9,12 +9,15 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const expiration = time.Hour * 24
+const (
+	expiration = time.Hour * 24
+)
 
 type Verification struct {
-	Token  string
-	Email  string
-	Expiry time.Time
+	Token     string
+	Email     string
+	Expiry    time.Time
+	CreatedAt time.Time
 }
 
 func (v *Verification) IsExpired() bool {
@@ -30,7 +33,8 @@ func scanVerification(row pgx.CollectableRow) (*Verification, error) {
 	err := row.Scan(
 		&v.Token,
 		&v.Email,
-		&v.Expiry)
+		&v.Expiry,
+		&v.CreatedAt)
 
 	return &v, err
 }
@@ -50,10 +54,10 @@ func (m *VerificationModel) Insert(token, email string) error {
 	return nil
 }
 
-func (m *VerificationModel) Get(token string) (*Verification, error) {
-	sql := "SELECT * FROM verifications WHERE token = $1;"
+func (m *VerificationModel) Get(email string) (*Verification, error) {
+	sql := "SELECT * FROM verifications WHERE email = $1;"
 
-	rows, err := m.Pool.Query(context.Background(), sql, token)
+	rows, err := m.Pool.Query(context.Background(), sql, email)
 	if err != nil {
 		return nil, err
 	}

@@ -1,13 +1,49 @@
 {{define "title"}}Racket Connections{{end}}
 
-{{define "body"}}
-    {{template "header" .}}
-    {{template "nav" .}}
-    <main>
-        <h1>Welcome</h1>
-        <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-        </p>
-    </main>
+{{define "main"}}
+    {{if .IsAuthenticated}}
+        <h1>Posts</h1>
+    {{else}}
+        <h3>Welcome</h3>
+        <p>Login to see posts...</p>
+
+        <section class="homepage">
+            <div class="form-container">
+                <h2>Login</h2>
+                <a href="/user/forgot">Forgot password?</a>
+
+                <form class="user" action="/user/login" method="POST">
+                    <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+
+                    <div>
+                        <label for="email">Email:</label>
+                        <input type="email" name="email" autocomplete="username" required>
+                    </div>
+
+                    <div>
+                        <label for="password">Password:</label>
+                        <input type="password" name="password" autocomplete="current-password" required>
+                    </div>
+
+                    <input type="submit" value="Login">
+                </form>
+            </div>
+
+            <div class="form-container">
+                <h2>Sign Up</h2>
+
+                <form class="user" action="/user/signup" method="POST">
+                    <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+
+                    <div>
+                        <label for="email">Email:</label>
+                        <input type="email" name="email" autocomplete="username" required>
+                    </div>
+
+                    <input type="submit" value="Register">
+                </form>
+            </div>
+        </section>
+    {{end}}
 {{end}}
     

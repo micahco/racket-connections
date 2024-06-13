@@ -1,18 +1,33 @@
 {{define "title"}}Create Account{{end}}
 
-{{define "body"}}
-    {{template "header" .}}
-    <main>
-        <h1>Create Account</h1>
-        <form action="/user/create" method="POST">
-            <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
-            <label>Full Name: <input type="text" name="name" autocomplete="name" required></label>
-            {{if not .Page.HasSessionEmail}}
-            <label>Email: <input type="email" name="email" autocomplete="username" required></label>
-            {{end}}
-            <label>Password: <input type="password" name="password" autocomplete="new-password" required></label>
-            <input type="submit" value="Submit">
-        </form>
-    </main>
+{{define "main"}}
+    <section>
+        <div class="form-container">
+            <h2>Create Account</h2>
+        
+            <form class="user" action="/user/create" method="POST">
+                <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+        
+                <div>
+                    <label for="email">Full Name:</label>
+                    <input type="text" name="name" autocomplete="name" required>
+                </div>
+        
+                {{if not .Page.HasSessionEmail}}
+                <div>
+                    <label for="email">Email:</label>
+                    <input type="email" name="email" autocomplete="username" required>
+                </div>
+                {{end}}
+        
+                <div>
+                    <label for="password">Password:</label>
+                    <input type="password" name="password" autocomplete="new-password" required>
+                </div>
+        
+                <input type="submit" value="Login">
+            </form>
+        </div>
+    </section>
 {{end}}
     

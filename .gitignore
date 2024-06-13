@@ -1,6 +1,9 @@
+bin/
+tls/
+
 *.rest
 *.http
 *.env
 *.http
-bin/
-tls/
+
+tailwindcss
