@@ -5,20 +5,18 @@ CREATE TABLE IF NOT EXISTS sessions (
 );
 CREATE INDEX sessions_expiry_idx ON sessions (expiry);
 
+CREATE TABLE IF NOT EXISTS verifications (
+    token VARCHAR(100) NOT NULL PRIMARY KEY,
+    email CITEXT NOT NULL,
+    expiry TIMESTAMPTZ NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGSERIAL PRIMARY KEY,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    is_verified BOOLEAN DEFAULT FALSE,
     name TEXT NOT NULL,
     email CITEXT UNIQUE NOT NULL,
     password_hash CHAR(60) NOT NULL
-);
-
-CREATE TABLE IF NOT EXISTS verifications (
-    email CITEXT NOT NULL PRIMARY KEY,
-    token VARCHAR(100) NOT NULL,
-    expiry TIMESTAMPTZ NOT NULL,
-    FOREIGN KEY (email) REFERENCES users(email) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS sports (

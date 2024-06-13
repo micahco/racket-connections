@@ -1,0 +1,25 @@
+{{define "title"}}Login{{end}}
+
+{{define "body"}}
+    {{template "header" .}}
+    <main>
+        <h1>Login</h1>
+        <form action="/user/login" method="POST">
+            <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+            <label>Email: <input type="email" name="email" autocomplete="username" required></label>
+            <label>Password: <input type="password" name="password" autocomplete="current-password" required></label>
+            <input type="submit" value="Submit">
+            <br>
+            <a href="/user/forgot">Forgot password?</a>
+        </form>
+
+        <h2>Don't have an account?</h2>
+        <p>Sign up today</p>
+        <form action="/user/signup" method="POST">
+            <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+            <label>Email: <input type="email" name="email" autocomplete="username" required></label>
+            <input type="submit" value="Submit">
+        </form>
+    </main>
+{{end}}
+    

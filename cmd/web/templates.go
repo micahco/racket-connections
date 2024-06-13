@@ -14,9 +14,9 @@ import (
 type templateData struct {
 	CurrentYear     int
 	Flash           string
-	Errors          []string
 	IsAuthenticated bool
 	CSRFToken       string
+	Page            any
 }
 
 func (app *application) newTemplateData(r *http.Request) *templateData {
@@ -30,6 +30,10 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 
 // Data must be initialized with newTemplateData()
 func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData) {
+	if data == nil {
+		app.errorLog.Fatal("passed nil data into render")
+	}
+
 	ts, ok := app.templateCache[page]
 	if !ok {
 		err := fmt.Errorf("template %s does not exist", page)
@@ -76,10 +80,10 @@ func newTemplateCache() (map[string]*template.Template, error) {
 			return nil, err
 		}
 
-		// ts, err = ts.ParseGlob("./templates/partials/*.html")
-		// if err != nil {
-		// 	return nil, err
-		// }
+		ts, err = ts.ParseGlob("./templates/partials/*.html")
+		if err != nil {
+			return nil, err
+		}
 
 		ts, err = ts.ParseFiles(page)
 		if err != nil {

@@ -8,29 +8,10 @@
     <link rel="stylesheet" href="/static/main.css">
 </head>
 <body>
-    <header>
-        <h1><a href="/">Racket Connections</a></h1>
-    </header>
-    <nav>
-        {{if .IsAuthenticated}}
-            <form action='/user/logout' method='POST'>
-                <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
-                <button>Logout</button>
-            </form>
-        {{else}}
-            <a href='/user/login'>Login</a>
-        {{end}}
-    </nav>
-    <main>
-        {{with .Flash}}
-        <div class='flash'>{{.}}</div>
-        {{end}}
-        {{range .Errors}}
-        <div class='error'>{{.}}</div>
-        {{end}}
-        {{template "main" .}}
-    </main>
-    <footer>Powered by Go in {{.CurrentYear}}</footer>
+    {{with .Flash}}
+    <aside class='flash'>{{.}}</aside>
+    {{end}}
+    {{template "body" .}}
 </body>
 </html>
 {{end}}

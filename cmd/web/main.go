@@ -6,6 +6,8 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"net/mail"
+	"net/smtp"
 	"os"
 	"time"
 
@@ -16,12 +18,16 @@ import (
 )
 
 type application struct {
+	url            string
 	errorLog       *log.Logger
 	infoLog        *log.Logger
 	posts          *models.PostModel
 	users          *models.UserModel
+	verifications  *models.VerificationModel
 	templateCache  map[string]*template.Template
 	sessionManager *scs.SessionManager
+	smtpClient     *smtp.Client
+	fromAddress    *mail.Address
 }
 
 func main() {
@@ -30,11 +36,15 @@ func main() {
 
 	addr := flag.String("addr", ":4000", "HTTP network address")
 	dsn := flag.String("dsn", "", "MySQL data source name")
+	smtpHost := flag.String("smtp-host", "", "SMTP hostname")
+	smtpPort := flag.String("smtp-port", "", "SMTP port")
+	smtpUser := flag.String("smtp-user", "", "SMTP username")
+	smtpPass := flag.String("smtp-pass", "", "SMTP password")
 
 	flag.Parse()
 
-	if *dsn == "" {
-		errorLog.Fatal("dsn required")
+	if *dsn == "" || *smtpHost == "" || *smtpPort == "" || *smtpUser == "" || *smtpPass == "" {
+		errorLog.Fatal("missing required flag")
 	}
 
 	pool, err := newPool(*dsn)
@@ -43,22 +53,37 @@ func main() {
 	}
 	defer pool.Close()
 
-	templateCache, err := newTemplateCache()
+	tc, err := newTemplateCache()
 	if err != nil {
 		errorLog.Fatal(err)
 	}
 
-	sessionManager := scs.New()
-	sessionManager.Store = pgxstore.New(pool)
-	sessionManager.Lifetime = 12 * time.Hour
+	sm := scs.New()
+	sm.Store = pgxstore.New(pool)
+	sm.Lifetime = 12 * time.Hour
+
+	sc, err := newSMTPClient(*smtpHost, *smtpPort, *smtpUser, *smtpPass)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	defer sc.Close()
+
+	from := &mail.Address{
+		Name:    "Racket Connections",
+		Address: *smtpUser,
+	}
 
 	app := &application{
+		url:            "https://localhost" + *addr,
 		errorLog:       errorLog,
 		infoLog:        infoLog,
 		posts:          &models.PostModel{Pool: pool},
 		users:          &models.UserModel{Pool: pool},
-		templateCache:  templateCache,
-		sessionManager: sessionManager,
+		verifications:  &models.VerificationModel{Pool: pool},
+		templateCache:  tc,
+		sessionManager: sm,
+		smtpClient:     sc,
+		fromAddress:    from,
 	}
 
 	srv := &http.Server{
@@ -67,8 +92,8 @@ func main() {
 		Handler:  app.routes(),
 	}
 
-	infoLog.Printf("Starting server on %s", *addr)
-	err = srv.ListenAndServe()
+	infoLog.Printf("Starting server: %s", app.url)
+	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
 	errorLog.Fatal(err)
 }
 

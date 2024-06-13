@@ -6,16 +6,20 @@ type contextKey string
 
 const (
 	authenticatedUserIDSessionKey = "authenticatedUserID"
+	verificationEmailSessionKey   = "verificationEmail"
+	verificationTokenSessionKey   = "verificationToken"
+	resetEmailSessionKey          = "resetEmail"
+	resetTokenSessionKey          = "resetToken"
 	isAuthenticatedContextKey     = contextKey("isAuthenticated")
 )
 
-func (app *application) login(r *http.Request, id int) error {
+func (app *application) login(r *http.Request, userID int) error {
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {
 		return err
 	}
 
-	app.sessionManager.Put(r.Context(), string(authenticatedUserIDSessionKey), id)
+	app.sessionManager.Put(r.Context(), string(authenticatedUserIDSessionKey), userID)
 
 	return nil
 }

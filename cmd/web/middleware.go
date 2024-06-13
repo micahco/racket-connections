@@ -15,7 +15,7 @@ func (app *application) recovery(next http.Handler) http.Handler {
 
 				w.Header().Set("Connection", "close")
 
-				app.serverError(w, fmt.Errorf("%s", r))
+				app.serverError(w, fmt.Errorf("PANIC\t%s", r))
 			}
 		}()
 
