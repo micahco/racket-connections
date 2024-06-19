@@ -7,3 +7,4 @@ tls/
 *.http
 
 tailwindcss
+static/main.css
