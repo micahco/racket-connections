@@ -7,11 +7,18 @@ import (
 	"html/template"
 	"io/fs"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"time"
 
 	"github.com/justinas/nosurf"
+	"github.com/micahco/racket-connections/internal/models"
 )
+
+type SportData struct {
+	Name  string
+	Posts []*models.PostData
+}
 
 type templateData struct {
 	CurrentYear     int
@@ -19,6 +26,7 @@ type templateData struct {
 	IsAuthenticated bool
 	CSRFToken       string
 	Page            any
+	Latest          map[string][]*models.PostData
 }
 
 func (app *application) newTemplateData(r *http.Request) *templateData {
@@ -97,12 +105,18 @@ func (app *application) renderFromCache(w http.ResponseWriter, status int, page 
 	return nil
 }
 
-func humanDate(t time.Time) string {
-	return t.Format("02 Jan 2006 at 15:04")
+func daysAgo(t time.Time) int {
+	return int(time.Since(t).Hours() / 24)
+}
+
+func isToday(t time.Time) bool {
+	return daysAgo(t) == 0
 }
 
 var functions = template.FuncMap{
-	"humanDate": humanDate,
+	"daysAgo":     daysAgo,
+	"isToday":     isToday,
+	"queryEscape": url.QueryEscape,
 }
 
 //go:embed templates

@@ -59,13 +59,69 @@ func (m *PostModel) Get(id int) (*Post, error) {
 	return p, err
 }
 
-func (m *PostModel) Latest(count int) ([]*Post, error) {
-	sql := "SELECT * FROM posts ORDER BY id DESC LIMIT $1"
+type LatestPost struct {
+	PostID     int
+	SkillLevel int
+	CreatedAt  time.Time
+	UserID     int
+	Username   string
+	SportName  string
+}
 
-	rows, err := m.Pool.Query(context.Background(), sql, count)
+func scanLatestPosts(row pgx.CollectableRow) (*LatestPost, error) {
+	var p LatestPost
+	err := row.Scan(
+		&p.PostID,
+		&p.SkillLevel,
+		&p.CreatedAt,
+		&p.UserID,
+		&p.Username,
+		&p.SportName,
+	)
+	return &p, err
+}
+
+type PostData struct {
+	PostID     int
+	SkillLevel int
+	CreatedAt  time.Time
+	UserID     int
+	Username   string
+}
+
+func (m *PostModel) Latest() (map[string][]*PostData, error) {
+	sql := "SELECT * FROM latest_posts;"
+
+	rows, err := m.Pool.Query(context.Background(), sql)
 	if err != nil {
 		return nil, err
 	}
 
-	return pgx.CollectRows(rows, scanPost)
+	posts, err := pgx.CollectRows(rows, scanLatestPosts)
+	if err != nil {
+		return nil, err
+	}
+
+	// Key: sport_name
+	pm := make(map[string][]*PostData)
+
+	for _, p := range posts {
+		// Make array at index if uninitialized
+		_, ok := pm[p.SportName]
+		if !ok {
+			pm[p.SportName] = make([]*PostData, 0)
+		}
+
+		pd := &PostData{
+			PostID:     p.PostID,
+			SkillLevel: p.SkillLevel,
+			CreatedAt:  p.CreatedAt,
+			UserID:     p.UserID,
+			Username:   p.Username,
+		}
+
+		pm[p.SportName] = append(pm[p.SportName], pd)
+	}
+
+	return pm, nil
 }

@@ -31,7 +31,7 @@ func (app *application) routes() http.Handler {
 		r.Use(noSurf)
 		r.Use(app.authenticate)
 
-		r.Get("/", app.handleIndexGet)
+		r.Get("/", app.handleRootGet)
 
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/login", app.handleAuthLoginGet)
@@ -121,8 +121,25 @@ func (app *application) handleFavicon(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./static/favicon.ico")
 }
 
-func (app *application) handleIndexGet(w http.ResponseWriter, r *http.Request) {
-	app.render(w, http.StatusOK, "home.html", app.newTemplateData(r))
+func (app *application) handleRootGet(w http.ResponseWriter, r *http.Request) {
+	if app.isAuthenticated(r) {
+		data := app.newTemplateData(r)
+
+		p, err := app.posts.Latest()
+		if err != nil {
+			app.serverError(w, err)
+
+			return
+		}
+
+		data.Latest = p
+
+		app.render(w, http.StatusOK, "latest-posts.html", data)
+
+		return
+	}
+
+	app.render(w, http.StatusOK, "login.html", app.newTemplateData(r))
 }
 
 func (app *application) handleAuthLoginGet(w http.ResponseWriter, r *http.Request) {
@@ -378,8 +395,6 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 
 		return
 	}
-
-	app.flash(r, "Successfully created account. Welcome!")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

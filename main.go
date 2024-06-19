@@ -73,8 +73,15 @@ func main() {
 		defer sc.Close()
 	}
 
+	var url string
+	if *prod {
+		url = "https://localhost" + *addr
+	} else {
+		url = "http://localhost" + *addr
+	}
+
 	app := &application{
-		url:            "https://localhost" + *addr,
+		url:            url,
 		isProduction:   *prod,
 		errorLog:       errorLog,
 		infoLog:        infoLog,
@@ -97,7 +104,11 @@ func main() {
 	}
 
 	infoLog.Printf("Starting server: %s", app.url)
-	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	if app.isProduction {
+		err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	} else {
+		srv.ListenAndServe()
+	}
 	errorLog.Fatal(err)
 }
 

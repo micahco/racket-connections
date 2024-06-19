@@ -7,7 +7,7 @@
     <title>{{template "title" .}}</title>
     <link rel="stylesheet" href="/static/main.css">
 </head>
-<body class="max-w-5xl mx-auto px-4">
+<body class="max-w-5xl mx-auto px-6">
     {{with .Flash}}
         <dialog class="max-w-md w-fit p-6 shadow-md rounded-md bg-white backdrop:bg-black/25" id="flash">
             <p>{{.}}</p>
@@ -18,18 +18,25 @@
             </form>
         </dialog>
     {{end}}
-    <header class="flex justify-between items-start py-8">
-       <div>
-            <h1 class="text-3xl font-bold">
-                <a class="text-beaver-orange" href="/">Racket Connections</a>
-            </h1>
-            {{if .IsAuthenticated}}
-            <form action="/auth/logout" method="POST">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                <button>Logout</button>
-            </form>
-            {{end}}
-       </div>
+    <header class="flex gap-6 flex-wrap justify-between items-center pr-16 py-12">
+        <a class="text-3xl font-bold text-beaver-orange" href="/">
+            Racket Connections
+        </a>
+        {{if .IsAuthenticated}}
+            <div class="flex flex-wrap-reverse gap-6 items-center">
+                <nav class="flex gap-6">
+                    <a href="/posts">Posts</a>
+                    <a href="/ladders">Ladders</a>
+                    <a href="/profile">Profile</a>
+                </nav>
+                <form action="/auth/logout" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <button class="py-1 px-4 text-sm font-bold rounded-full border border-gray-400 bg-gray-200 hover:bg-gray-300 focus:bg-gray-400 text-gray-700">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        {{end}}
     </header>
     <main class="flex flex-col gap-y-8">
         {{template "main" .}}
