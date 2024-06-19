@@ -22,9 +22,9 @@ func (app *application) routes() http.Handler {
 
 	r.NotFound(handleNotFound)
 
-	r.Handle("/static/*", app.getStaticHandler())
+	r.Handle("/static/*", app.handleStatic())
 
-	r.Get("/favicon.ico", handleFavicon)
+	r.Get("/favicon.ico", app.handleFavicon)
 
 	r.Route("/", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
@@ -33,30 +33,34 @@ func (app *application) routes() http.Handler {
 
 		r.Get("/", app.handleIndexGet)
 
-		r.Route("/user", func(r chi.Router) {
-			r.Get("/login", app.handleUserLoginGet)
-			r.Post("/login", app.handleUserLoginPost)
+		r.Route("/auth", func(r chi.Router) {
+			r.Get("/login", app.handleAuthLoginGet)
+			r.Post("/login", app.handleAuthLoginPost)
 
-			r.Post("/logout", app.handleUserLogoutPost)
+			r.Post("/logout", app.handleAuthLogoutPost)
 
-			r.Get("/signup", app.handleUserSignupGet)
-			r.Post("/signup", app.handleUserSignupPost)
+			r.Get("/signup", app.handleAuthSignupGet)
+			r.Post("/signup", app.handleAuthSignupPost)
 
-			r.Get("/create", app.handleUserCreateGet)
-			r.Post("/create", app.handleUserCreatePost)
+			r.Get("/create", app.handleAuthCreateGet)
+			r.Post("/create", app.handleAuthCreatePost)
 
-			r.Get("/forgot", app.handleUserForgotGet)
-			r.Post("/forgot", app.handleUserForgotPost)
+			r.Get("/forgot", app.handleAuthForgotGet)
+			r.Post("/forgot", app.handleAuthForgotPost)
 
-			r.Get("/reset", app.handleUserResetGet)
-			r.Post("/reset", app.handleUserResetPost)
+			r.Get("/reset", app.handleAuthResetGet)
+			r.Post("/reset", app.handleAuthResetPost)
+		})
 
-			r.Route("/profile", func(r chi.Router) {
-				r.Use(app.requireAuthentication)
+		r.Route("/profile", func(r chi.Router) {
+			r.Use(app.requireAuthentication)
 
-				r.Get("/", app.handleUserProfileGet)
-				r.Post("/", app.handleUserProfilePost)
-			})
+			r.Get("/", app.handleAuthProfileGet)
+
+			r.Get("/edit", app.handleAuthProfileGet)
+			r.Post("/edit", app.handleAuthProfilePost)
+
+			r.Post("/delete", app.handleAuthProfilePost)
 		})
 
 		r.Route("/post", func(r chi.Router) {
@@ -66,18 +70,6 @@ func (app *application) routes() http.Handler {
 	})
 
 	return r
-}
-
-//go:embed static
-var staticFS embed.FS
-
-func (app *application) getStaticHandler() http.Handler {
-	if app.isProduction {
-		return http.FileServer(http.FS(staticFS))
-	}
-
-	fs := http.FileServer(http.Dir("./static/"))
-	return http.StripPrefix("/static", fs)
 }
 
 // Errors
@@ -107,31 +99,49 @@ func handleNotFound(w http.ResponseWriter, r *http.Request) {
 	clientError(w, http.StatusNotFound)
 }
 
-func handleFavicon(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, "./ui/static/favicon.ico")
+//go:embed static
+var staticFS embed.FS
+
+func (app *application) handleStatic() http.Handler {
+	if app.isProduction {
+		return http.FileServer(http.FS(staticFS))
+	}
+
+	fs := http.FileServer(http.Dir("./static/"))
+	return http.StripPrefix("/static", fs)
+}
+
+func (app *application) handleFavicon(w http.ResponseWriter, r *http.Request) {
+	if app.isProduction {
+		http.ServeFileFS(w, r, staticFS, "./static/favicon.ico")
+
+		return
+	}
+
+	http.ServeFile(w, r, "./static/favicon.ico")
 }
 
 func (app *application) handleIndexGet(w http.ResponseWriter, r *http.Request) {
-	app.render(w, http.StatusOK, "index.html", app.newTemplateData(r))
+	app.render(w, http.StatusOK, "home.html", app.newTemplateData(r))
 }
 
-func (app *application) handleUserLoginGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthLoginGet(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-type userLoginForm struct {
+type authLoginForm struct {
 	email    string
 	password string
 	validator.Validator
 }
 
-func (app *application) handleUserLoginPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthLoginPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
 	}
 
-	form := userLoginForm{
+	form := authLoginForm{
 		email:    r.Form.Get("email"),
 		password: r.Form.Get("password"),
 	}
@@ -167,7 +177,7 @@ func (app *application) handleUserLoginPost(w http.ResponseWriter, r *http.Reque
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (app *application) handleUserLogoutPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthLogoutPost(w http.ResponseWriter, r *http.Request) {
 	err := app.logout(r)
 	if err != nil {
 		app.serverError(w, err)
@@ -177,16 +187,16 @@ func (app *application) handleUserLogoutPost(w http.ResponseWriter, r *http.Requ
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (app *application) handleUserSignupGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthSignupGet(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-type userSignupForm struct {
+type authSignupForm struct {
 	email string
 	validator.Validator
 }
 
-func (app *application) handleUserSignupPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
@@ -194,7 +204,7 @@ func (app *application) handleUserSignupPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	form := userSignupForm{email: r.Form.Get("email")}
+	form := authSignupForm{email: r.Form.Get("email")}
 
 	form.Validate(validator.NotBlank(form.email), "invalid email: cannot be blank")
 	form.Validate(validator.Matches(form.email, validator.EmailRX), "invalid email: must be a valid email address")
@@ -221,7 +231,7 @@ func (app *application) handleUserSignupPost(w http.ResponseWriter, r *http.Requ
 		if time.Since(v.CreatedAt) < min {
 			app.flash(r, "A link to activate your account has been emailed to the address provided.")
 
-			http.Redirect(w, r, "/", http.StatusSeeOther)
+			http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 
 			return
 		}
@@ -234,7 +244,7 @@ func (app *application) handleUserSignupPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	url := fmt.Sprintf("%s/user/create?token=%s", app.url, token)
+	url := fmt.Sprintf("%s/auth/create?token=%s", app.url, token)
 	html := fmt.Sprintf("<p>Please follow the link below to activate your account:<p>"+
 		"<a href=\"%s\">%s</a>", url, url)
 
@@ -261,11 +271,11 @@ func (app *application) handleUserSignupPost(w http.ResponseWriter, r *http.Requ
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-type userCreatePage struct {
+type authCreatePage struct {
 	HasSessionEmail bool
 }
 
-func (app *application) handleUserCreateGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthCreateGet(w http.ResponseWriter, r *http.Request) {
 	queryToken := r.URL.Query().Get("token")
 	if queryToken == "" {
 		unauthorizedError(w)
@@ -277,18 +287,18 @@ func (app *application) handleUserCreateGet(w http.ResponseWriter, r *http.Reque
 	exists := app.sessionManager.Exists(r.Context(), verificationEmailSessionKey)
 
 	data := app.newTemplateData(r)
-	data.Page = userCreatePage{HasSessionEmail: exists}
-	app.render(w, http.StatusOK, "user-create.html", data)
+	data.Page = authCreatePage{HasSessionEmail: exists}
+	app.render(w, http.StatusOK, "auth-create.html", data)
 }
 
-type userCreateForm struct {
+type authCreateForm struct {
 	name     string
 	email    string
 	password string
 	validator.Validator
 }
 
-func (app *application) handleUserCreatePost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
@@ -296,7 +306,7 @@ func (app *application) handleUserCreatePost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	form := userCreateForm{
+	form := authCreateForm{
 		name:     r.Form.Get("name"),
 		email:    r.Form.Get("email"),
 		password: r.Form.Get("password"),
@@ -335,7 +345,7 @@ func (app *application) handleUserCreatePost(w http.ResponseWriter, r *http.Requ
 		} else if errors.Is(err, models.ErrExpiredVerification) {
 			app.flash(r, "Your verification token is expired. Please signup for a new account.")
 
-			http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+			http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 		} else {
 			app.serverError(w, err)
 		}
@@ -374,16 +384,16 @@ func (app *application) handleUserCreatePost(w http.ResponseWriter, r *http.Requ
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (app *application) handleUserForgotGet(w http.ResponseWriter, r *http.Request) {
-	app.render(w, http.StatusOK, "user-forgot.html", app.newTemplateData(r))
+func (app *application) handleAuthForgotGet(w http.ResponseWriter, r *http.Request) {
+	app.render(w, http.StatusOK, "auth-forgot.html", app.newTemplateData(r))
 }
 
-type userForgotForm struct {
+type authForgotForm struct {
 	email string
 	validator.Validator
 }
 
-func (app *application) handleUserForgotPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthForgotPost(w http.ResponseWriter, r *http.Request) {
 	msg := "A link to reset your password has been emailed to the address provided."
 
 	err := r.ParseForm()
@@ -393,7 +403,7 @@ func (app *application) handleUserForgotPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	form := userForgotForm{email: r.Form.Get("email")}
+	form := authForgotForm{email: r.Form.Get("email")}
 
 	form.Validate(validator.NotBlank(form.email), "invalid email: cannot be blank")
 	form.Validate(validator.MaxChars(form.email, 254), "invalid email: must be no more than 254 characters long")
@@ -413,7 +423,7 @@ func (app *application) handleUserForgotPost(w http.ResponseWriter, r *http.Requ
 	if !exists {
 		app.flash(r, msg)
 
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 
 		return
 	}
@@ -425,7 +435,7 @@ func (app *application) handleUserForgotPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	url := fmt.Sprintf("%s/user/reset?token=%s", app.url, token)
+	url := fmt.Sprintf("%s/auth/reset?token=%s", app.url, token)
 	html := fmt.Sprintf("<p>Please follow the link below to reset your password:<p>"+
 		"<a href=\"%s\">%s</a>", url, url)
 
@@ -449,14 +459,14 @@ func (app *application) handleUserForgotPost(w http.ResponseWriter, r *http.Requ
 
 	app.flash(r, msg)
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
-type userResetPage struct {
+type authResetPage struct {
 	HasSessionEmail bool
 }
 
-func (app *application) handleUserResetGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthResetGet(w http.ResponseWriter, r *http.Request) {
 	queryToken := r.URL.Query().Get("token")
 	if queryToken == "" {
 		unauthorizedError(w)
@@ -468,17 +478,17 @@ func (app *application) handleUserResetGet(w http.ResponseWriter, r *http.Reques
 	exists := app.sessionManager.Exists(r.Context(), resetEmailSessionKey)
 
 	data := app.newTemplateData(r)
-	data.Page = userResetPage{HasSessionEmail: exists}
-	app.render(w, http.StatusOK, "user-reset.html", data)
+	data.Page = authResetPage{HasSessionEmail: exists}
+	app.render(w, http.StatusOK, "auth-reset.html", data)
 }
 
-type userResetForm struct {
+type authResetForm struct {
 	email    string
 	password string
 	validator.Validator
 }
 
-func (app *application) handleUserResetPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
@@ -486,7 +496,7 @@ func (app *application) handleUserResetPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	form := userResetForm{
+	form := authResetForm{
 		email:    r.Form.Get("email"),
 		password: r.Form.Get("password"),
 	}
@@ -522,9 +532,9 @@ func (app *application) handleUserResetPost(w http.ResponseWriter, r *http.Reque
 		if errors.Is(err, models.ErrNoRecord) {
 			unauthorizedError(w)
 		} else if errors.Is(err, models.ErrExpiredVerification) {
-			app.flash(r, "Your verification token is expired. Please resubmit the form.")
+			app.flash(r, "Expired verification token.")
 
-			http.Redirect(w, r, "/user/forgot", http.StatusSeeOther)
+			http.Redirect(w, r, "/auth/forgot", http.StatusSeeOther)
 		} else {
 			app.serverError(w, err)
 		}
@@ -550,13 +560,13 @@ func (app *application) handleUserResetPost(w http.ResponseWriter, r *http.Reque
 
 	app.flash(r, "Successfully reset password. Please login.")
 
-	http.Redirect(w, r, "/user/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }
 
-func (app *application) handleUserProfileGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthProfileGet(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "show user profile")
 }
 
-func (app *application) handleUserProfilePost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthProfilePost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "update user profile")
 }

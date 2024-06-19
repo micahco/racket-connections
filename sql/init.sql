@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS sessions (
     data BYTEA NOT NULL,
     expiry TIMESTAMPTZ NOT NULL
 );
+-- The scs package will automatically delete expired sessions
 CREATE INDEX sessions_expiry_idx ON sessions (expiry);
 
 CREATE TABLE IF NOT EXISTS verifications (
@@ -24,6 +25,15 @@ CREATE TABLE IF NOT EXISTS sports (
     id BIGSERIAL PRIMARY KEY,
     sport_name TEXT UNIQUE NOT NULL
 );
+INSERT INTO sports (sport_name) 
+VALUES 
+    ('Tennis'),
+    ('Badminton'),
+    ('Table Tennis'),
+    ('Pickleball'),
+    ('Racquetball'),
+    ('Squash')
+ON CONFLICT (sport_name) DO NOTHING;
 
 CREATE TABLE IF NOT EXISTS posts (
     id BIGSERIAL PRIMARY KEY,

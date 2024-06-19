@@ -12,6 +12,8 @@ pg-reset:
 pg-init:
 	cat ./sql/init.sql | docker exec -i racket-connections psql -U postgres -d postgres
 
+css:
+	./tailwindcss -i ./templates/main.css -o ./static/main.css --watch
 
 run: docker-start pg-reset pg-init
 	go run . \
@@ -20,3 +22,6 @@ run: docker-start pg-reset pg-init
 		-smtp-pass=${RC_SMTP_PASS} \
 		-smtp-port=${RC_SMTP_PORT} \
 		-smtp-user=${RC_SMTP_USER} \
+
+dev:
+	${MAKE} -j3 css run

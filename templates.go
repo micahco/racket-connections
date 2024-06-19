@@ -33,29 +33,68 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 // Data must be initialized with newTemplateData()
 func (app *application) render(w http.ResponseWriter, status int, page string, data *templateData) {
 	if data == nil {
-		app.errorLog.Fatal("passed nil data into render")
+		app.serverError(w, fmt.Errorf("passed nil data into render"))
 	}
 
+	if app.isProduction {
+		err := app.renderFromCache(w, status, page, data)
+		if err != nil {
+			app.serverError(w, err)
+		}
+
+		return
+	}
+
+	t, err := template.ParseFiles("./templates/base.html")
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	t, err = t.Funcs(functions).ParseGlob("./templates/partials/*.html")
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	t, err = t.ParseFiles("./templates/pages/" + page)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	err = t.ExecuteTemplate(w, "base", data)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+}
+
+func (app *application) renderFromCache(w http.ResponseWriter, status int, page string, data *templateData) error {
 	ts, ok := app.templateCache[page]
 	if !ok {
 		err := fmt.Errorf("template %s does not exist", page)
-		app.serverError(w, err)
-		return
+		return err
 	}
 
 	buf := new(bytes.Buffer)
 
 	err := ts.ExecuteTemplate(buf, "base", data)
 	if err != nil {
-		app.serverError(w, err)
-		return
+		return err
 	}
 
 	w.WriteHeader(status)
 
 	if _, err := buf.WriteTo(w); err != nil {
-		app.serverError(w, err)
+		return err
 	}
+
+	return nil
 }
 
 func humanDate(t time.Time) string {
