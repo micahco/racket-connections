@@ -11,16 +11,20 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type UserModel struct {
+	pool *pgxpool.Pool
+}
+
+func NewUserModel(pool *pgxpool.Pool) *UserModel {
+	return &UserModel{pool}
+}
+
 type User struct {
 	ID           int
 	Name         string
 	Email        string
 	PasswordHash []byte
 	CreatedAt    time.Time
-}
-
-type UserModel struct {
-	Pool *pgxpool.Pool
 }
 
 func scanUser(row pgx.CollectableRow) (*User, error) {
@@ -47,7 +51,7 @@ func (m *UserModel) Insert(name, email, password string) (int, error) {
 		(name, email, password_hash)
 		VALUES($1, $2, $3) RETURNING id;`
 
-	err = m.Pool.QueryRow(context.Background(), sql, name, email, hash).Scan(&id)
+	err = m.pool.QueryRow(context.Background(), sql, name, email, hash).Scan(&id)
 	if pgErrCode(err) == pgerrcode.UniqueViolation {
 		return 0, ErrDuplicateEmail
 	}
@@ -58,7 +62,7 @@ func (m *UserModel) Insert(name, email, password string) (int, error) {
 func (m *UserModel) Authenticate(email, password string) (int, error) {
 	sql := "SELECT * FROM users WHERE email = $1;"
 
-	rows, err := m.Pool.Query(context.Background(), sql, email)
+	rows, err := m.pool.Query(context.Background(), sql, email)
 	if err != nil {
 		return 0, err
 	}
@@ -89,7 +93,7 @@ func (m *UserModel) Exists(id int) (bool, error) {
 
 	sql := "SELECT EXISTS(SELECT true FROM users WHERE id = $1);"
 
-	err := m.Pool.QueryRow(context.Background(), sql, id).Scan(&exists)
+	err := m.pool.QueryRow(context.Background(), sql, id).Scan(&exists)
 
 	return exists, err
 }
@@ -99,7 +103,7 @@ func (m *UserModel) ExistsEmail(email string) (bool, error) {
 
 	sql := "SELECT EXISTS(SELECT true FROM users WHERE email = $1);"
 
-	err := m.Pool.QueryRow(context.Background(), sql, email).Scan(&exists)
+	err := m.pool.QueryRow(context.Background(), sql, email).Scan(&exists)
 
 	return exists, err
 }
@@ -112,7 +116,7 @@ func (m *UserModel) UpdatePassword(email, password string) error {
 
 	sql := "UPDATE users SET password_hash = $1 WHERE email = $2"
 
-	_, err = m.Pool.Exec(context.Background(), sql, hash, email)
+	_, err = m.pool.Exec(context.Background(), sql, hash, email)
 
 	return err
 }

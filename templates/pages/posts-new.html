@@ -1,24 +1,19 @@
-{{define "title"}}Create Account{{end}}
+{{define "title"}}New Post{{end}}
 
 {{define "main"}}
     <section>
         <h1 class="text-2xl font-bold mb-8">
-            Create Your Account
+            New Post
         </h1>
-    
+
         <form class="w-full max-w-sm" action="/auth/create" method="POST">
             <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
-    
-            {{template "form-name" .}}
-    
-            {{if not .HasSessionEmail}}
-                {{template "form-email" .}}
-            {{end}}
-    
-            {{template "form-password" .}}
+
+            {{template "form-sport" .}}
+
+            {{template "form-skill-level" .}}
     
             {{template "form-button" "Submit"}}
         </form>
     </section>
 {{end}}
-    

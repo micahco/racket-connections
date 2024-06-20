@@ -15,18 +15,14 @@ import (
 	"github.com/micahco/racket-connections/internal/models"
 )
 
-type SportData struct {
-	Name  string
-	Posts []*models.PostData
-}
-
 type templateData struct {
 	CurrentYear     int
 	Flash           string
 	IsAuthenticated bool
 	CSRFToken       string
-	Page            any
-	Latest          map[string][]*models.PostData
+	HasSessionEmail bool
+	SportsPostsMap  map[string][]*models.PostDetails
+	Post            *models.PostDetails
 }
 
 func (app *application) newTemplateData(r *http.Request) *templateData {

@@ -2,23 +2,21 @@
 
 {{define "main"}}
     <section>
-        <div class="w-full max-w-sm">
-            <h2 class="text-2xl font-bold mb-6">
-                Reset Password
-            </h2>
+        <h1 class="text-2xl font-bold mb-4">
+            Reset Password
+        </h1>
+
+        <p class="mb-8">
+            Enter the email address associated with your account. A link to reset your password will be sent to your email.
+        </p>
         
-            <form action="/auth/reset" method="POST">
-                <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+        <form class="w-full max-w-sm" action="/auth/reset" method="POST">
+            <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
 
-                {{if not .Page.HasSessionEmail}}
-                    {{template "form-email" .}}
-                {{end}}
+            {{template "form-email" .}}
 
-                {{template "form-password" .}}
-
-                {{template "form-button" "Submit"}}
-            </form>
-        </div>
+            {{template "form-button" "Submit"}}
+        </form>
     </section>
 {{end}}
     

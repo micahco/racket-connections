@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -45,11 +46,13 @@ func (app *application) routes() http.Handler {
 			r.Get("/create", app.handleAuthCreateGet)
 			r.Post("/create", app.handleAuthCreatePost)
 
-			r.Get("/forgot", app.handleAuthForgotGet)
-			r.Post("/forgot", app.handleAuthForgotPost)
+			r.Route("/reset", func(r chi.Router) {
+				r.Get("/", app.handleAuthResetGet)
+				r.Post("/", app.handleAuthResetPost)
 
-			r.Get("/reset", app.handleAuthResetGet)
-			r.Post("/reset", app.handleAuthResetPost)
+				r.Get("/update", app.handleAuthResetUpdateGet)
+				r.Post("/update", app.handleAuthResetUpdatePost)
+			})
 		})
 
 		r.Route("/profile", func(r chi.Router) {
@@ -63,9 +66,22 @@ func (app *application) routes() http.Handler {
 			r.Post("/delete", app.handleAuthProfilePost)
 		})
 
-		r.Route("/post", func(r chi.Router) {
+		r.Route("/posts", func(r chi.Router) {
 			r.Use(app.requireAuthentication)
 
+			r.Get("/", app.handlePostsGet)
+			r.Post("/", app.handlePostsPost)
+
+			r.Get("/latest", app.handlePostsLatestGet)
+
+			r.Route("/{id}", func(r chi.Router) {
+				r.Get("/*", app.handlePostsIDGet)
+				r.Post("/", app.handlePostsIDPost)
+
+				r.Get("/edit", app.handlePostsIDEditGet)
+			})
+
+			r.Get("/new", app.handlePostsNewGet)
 		})
 	})
 
@@ -123,18 +139,7 @@ func (app *application) handleFavicon(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) handleRootGet(w http.ResponseWriter, r *http.Request) {
 	if app.isAuthenticated(r) {
-		data := app.newTemplateData(r)
-
-		p, err := app.posts.Latest()
-		if err != nil {
-			app.serverError(w, err)
-
-			return
-		}
-
-		data.Latest = p
-
-		app.render(w, http.StatusOK, "latest-posts.html", data)
+		http.Redirect(w, r, "/posts/latest", http.StatusSeeOther)
 
 		return
 	}
@@ -246,7 +251,7 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 	if v != nil {
 		min := 5 * time.Minute
 		if time.Since(v.CreatedAt) < min {
-			app.flash(r, "A link to activate your account has been emailed to the address provided.")
+			app.flash(r, "A link to activate your account has been sent to the email address provided.")
 
 			http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 
@@ -288,10 +293,6 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-type authCreatePage struct {
-	HasSessionEmail bool
-}
-
 func (app *application) handleAuthCreateGet(w http.ResponseWriter, r *http.Request) {
 	queryToken := r.URL.Query().Get("token")
 	if queryToken == "" {
@@ -301,10 +302,10 @@ func (app *application) handleAuthCreateGet(w http.ResponseWriter, r *http.Reque
 	}
 
 	app.sessionManager.Put(r.Context(), verificationTokenSessionKey, queryToken)
-	exists := app.sessionManager.Exists(r.Context(), verificationEmailSessionKey)
 
 	data := app.newTemplateData(r)
-	data.Page = authCreatePage{HasSessionEmail: exists}
+	data.HasSessionEmail = app.sessionManager.Exists(r.Context(), verificationEmailSessionKey)
+
 	app.render(w, http.StatusOK, "auth-create.html", data)
 }
 
@@ -360,9 +361,9 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 		if errors.Is(err, models.ErrNoRecord) {
 			unauthorizedError(w)
 		} else if errors.Is(err, models.ErrExpiredVerification) {
-			app.flash(r, "Your verification token is expired. Please signup for a new account.")
+			app.flash(r, "Your verification token is expired. Please signup again.")
 
-			http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
+			http.Redirect(w, r, "/", http.StatusSeeOther)
 		} else {
 			app.serverError(w, err)
 		}
@@ -399,16 +400,16 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func (app *application) handleAuthForgotGet(w http.ResponseWriter, r *http.Request) {
-	app.render(w, http.StatusOK, "auth-forgot.html", app.newTemplateData(r))
+func (app *application) handleAuthResetGet(w http.ResponseWriter, r *http.Request) {
+	app.render(w, http.StatusOK, "auth-reset.html", app.newTemplateData(r))
 }
 
-type authForgotForm struct {
+type authResetForm struct {
 	email string
 	validator.Validator
 }
 
-func (app *application) handleAuthForgotPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Request) {
 	msg := "A link to reset your password has been emailed to the address provided."
 
 	err := r.ParseForm()
@@ -418,7 +419,7 @@ func (app *application) handleAuthForgotPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	form := authForgotForm{email: r.Form.Get("email")}
+	form := authResetForm{email: r.Form.Get("email")}
 
 	form.Validate(validator.NotBlank(form.email), "invalid email: cannot be blank")
 	form.Validate(validator.MaxChars(form.email, 254), "invalid email: must be no more than 254 characters long")
@@ -450,7 +451,7 @@ func (app *application) handleAuthForgotPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	url := fmt.Sprintf("%s/auth/reset?token=%s", app.url, token)
+	url := fmt.Sprintf("%s/auth/reset/update?token=%s", app.url, token)
 	html := fmt.Sprintf("<p>Please follow the link below to reset your password:<p>"+
 		"<a href=\"%s\">%s</a>", url, url)
 
@@ -476,12 +477,7 @@ func (app *application) handleAuthForgotPost(w http.ResponseWriter, r *http.Requ
 
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
-
-type authResetPage struct {
-	HasSessionEmail bool
-}
-
-func (app *application) handleAuthResetGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthResetUpdateGet(w http.ResponseWriter, r *http.Request) {
 	queryToken := r.URL.Query().Get("token")
 	if queryToken == "" {
 		unauthorizedError(w)
@@ -490,20 +486,20 @@ func (app *application) handleAuthResetGet(w http.ResponseWriter, r *http.Reques
 	}
 
 	app.sessionManager.Put(r.Context(), resetTokenSessionKey, queryToken)
-	exists := app.sessionManager.Exists(r.Context(), resetEmailSessionKey)
 
 	data := app.newTemplateData(r)
-	data.Page = authResetPage{HasSessionEmail: exists}
+	data.HasSessionEmail = app.sessionManager.Exists(r.Context(), resetEmailSessionKey)
+
 	app.render(w, http.StatusOK, "auth-reset.html", data)
 }
 
-type authResetForm struct {
+type authResetUpdateForm struct {
 	email    string
 	password string
 	validator.Validator
 }
 
-func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthResetUpdatePost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
@@ -511,7 +507,7 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	form := authResetForm{
+	form := authResetUpdateForm{
 		email:    r.Form.Get("email"),
 		password: r.Form.Get("password"),
 	}
@@ -549,7 +545,7 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 		} else if errors.Is(err, models.ErrExpiredVerification) {
 			app.flash(r, "Expired verification token.")
 
-			http.Redirect(w, r, "/auth/forgot", http.StatusSeeOther)
+			http.Redirect(w, r, "/auth/reset", http.StatusSeeOther)
 		} else {
 			app.serverError(w, err)
 		}
@@ -584,4 +580,66 @@ func (app *application) handleAuthProfileGet(w http.ResponseWriter, r *http.Requ
 
 func (app *application) handleAuthProfilePost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "update user profile")
+}
+
+func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "show all posts")
+}
+
+func (app *application) handlePostsPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "create new post")
+}
+
+func (app *application) handlePostsLatestGet(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+
+	p, err := app.posts.Latest()
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	data.SportsPostsMap = p
+
+	app.render(w, http.StatusOK, "posts-latest.html", data)
+}
+
+func (app *application) handlePostsIDGet(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		clientError(w, http.StatusBadRequest)
+	}
+
+	p, err := app.posts.Get(id)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			clientError(w, http.StatusNotFound)
+		} else {
+			app.serverError(w, err)
+		}
+
+		return
+	}
+
+	fmt.Fprint(w, p)
+}
+
+func (app *application) handlePostsIDPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "update post")
+}
+
+func (app *application) handlePostsIDEditGet(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "edit post")
+}
+
+func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request) {
+	_, err := app.getSessionUserID(r)
+	if err != nil {
+		unauthorizedError(w)
+
+		return
+	}
+
+	app.render(w, http.StatusOK, "posts-new.html", app.newTemplateData(r))
 }

@@ -13,6 +13,14 @@ const (
 	expiration = time.Hour * 24
 )
 
+type VerificationModel struct {
+	pool *pgxpool.Pool
+}
+
+func NewVerificationModel(pool *pgxpool.Pool) *VerificationModel {
+	return &VerificationModel{pool}
+}
+
 type Verification struct {
 	Token     string
 	Email     string
@@ -22,10 +30,6 @@ type Verification struct {
 
 func (v *Verification) IsExpired() bool {
 	return time.Now().After(v.Expiry)
-}
-
-type VerificationModel struct {
-	Pool *pgxpool.Pool
 }
 
 func scanVerification(row pgx.CollectableRow) (*Verification, error) {
@@ -46,7 +50,7 @@ func (m *VerificationModel) Insert(token, email string) error {
 		(token, email, expiry)
 		VALUES($1, $2, $3);`
 
-	_, err := m.Pool.Exec(context.Background(), sql, token, email, expiry)
+	_, err := m.pool.Exec(context.Background(), sql, token, email, expiry)
 	if err != nil {
 		return err
 	}
@@ -57,7 +61,7 @@ func (m *VerificationModel) Insert(token, email string) error {
 func (m *VerificationModel) Get(email string) (*Verification, error) {
 	sql := "SELECT * FROM verifications WHERE email = $1;"
 
-	rows, err := m.Pool.Query(context.Background(), sql, email)
+	rows, err := m.pool.Query(context.Background(), sql, email)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +78,7 @@ func (m *VerificationModel) Verify(token, email string) error {
 	sql := `SELECT * FROM verifications 
 		WHERE token = $1 AND email = $2;`
 
-	rows, err := m.Pool.Query(context.Background(), sql, token, email)
+	rows, err := m.pool.Query(context.Background(), sql, token, email)
 	if err != nil {
 		return err
 	}
@@ -94,7 +98,7 @@ func (m *VerificationModel) Verify(token, email string) error {
 func (m *VerificationModel) Purge(email string) error {
 	sql := "DELETE FROM verifications WHERE email = $1;"
 
-	_, err := m.Pool.Exec(context.Background(), sql, email)
+	_, err := m.pool.Exec(context.Background(), sql, email)
 
 	return err
 }

@@ -9,49 +9,58 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type Post struct {
-	ID      int
-	UserID  int
-	SportID int
-	Created time.Time
-}
-
 type PostModel struct {
-	Pool *pgxpool.Pool
+	pool *pgxpool.Pool
 }
 
-func scanPost(row pgx.CollectableRow) (*Post, error) {
-	var p Post
+func NewPostModel(pool *pgxpool.Pool) *PostModel {
+	return &PostModel{pool}
+}
+
+type PostDetails struct {
+	PostID     int
+	SkillLevel int
+	CreatedAt  time.Time
+	UserID     int
+	Username   string
+	SportID    int
+	SportName  string
+}
+
+func scanPostDetails(row pgx.CollectableRow) (*PostDetails, error) {
+	var p PostDetails
 	err := row.Scan(
-		&p.ID,
+		&p.PostID,
+		&p.SkillLevel,
+		&p.CreatedAt,
 		&p.UserID,
+		&p.Username,
 		&p.SportID,
-		&p.Created)
+		&p.SportName)
 	return &p, err
 }
 
-func (m *PostModel) Insert(userID, sportID int) (*Post, error) {
+func (m *PostModel) Insert(userID, sportID, skillLevel int) (int, error) {
+	var id int
+
 	sql := `INSERT INTO posts
-		(user_id, sport_id)
-		VALUES($1, $2) RETURNING *;`
+		(user_id, sport_id, skill_level)
+		VALUES($1, $2, $3) RETURNING id;`
 
-	rows, err := m.Pool.Query(context.Background(), sql, userID, sportID)
-	if err != nil {
-		return nil, err
-	}
+	err := m.pool.QueryRow(context.Background(), sql, userID, sportID, skillLevel).Scan(&id)
 
-	return pgx.CollectOneRow(rows, scanPost)
+	return id, err
 }
 
-func (m *PostModel) Get(id int) (*Post, error) {
-	sql := "SELECT * FROM posts WHERE id = $1;"
+func (m *PostModel) Get(id int) (*PostDetails, error) {
+	sql := "SELECT * FROM post_details WHERE id = $1;"
 
-	rows, err := m.Pool.Query(context.Background(), sql, id)
+	rows, err := m.pool.Query(context.Background(), sql, id)
 	if err != nil {
 		return nil, err
 	}
 
-	p, err := pgx.CollectOneRow(rows, scanPost)
+	p, err := pgx.CollectOneRow(rows, scanPostDetails)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return nil, ErrNoRecord
 	}
@@ -59,68 +68,40 @@ func (m *PostModel) Get(id int) (*Post, error) {
 	return p, err
 }
 
-type LatestPost struct {
-	PostID     int
-	SkillLevel int
-	CreatedAt  time.Time
-	UserID     int
-	Username   string
-	SportName  string
+func (m *PostModel) Exists(userID, sportID int) (bool, error) {
+	var exists bool
+
+	sql := "SELECT EXISTS(SELECT true FROM posts WHERE user_id = $1 AND sport_id = $2);"
+
+	err := m.pool.QueryRow(context.Background(), sql, userID, sportID).Scan(&exists)
+
+	return exists, err
 }
 
-func scanLatestPosts(row pgx.CollectableRow) (*LatestPost, error) {
-	var p LatestPost
-	err := row.Scan(
-		&p.PostID,
-		&p.SkillLevel,
-		&p.CreatedAt,
-		&p.UserID,
-		&p.Username,
-		&p.SportName,
-	)
-	return &p, err
-}
-
-type PostData struct {
-	PostID     int
-	SkillLevel int
-	CreatedAt  time.Time
-	UserID     int
-	Username   string
-}
-
-func (m *PostModel) Latest() (map[string][]*PostData, error) {
+func (m *PostModel) Latest() (map[string][]*PostDetails, error) {
 	sql := "SELECT * FROM latest_posts;"
 
-	rows, err := m.Pool.Query(context.Background(), sql)
+	rows, err := m.pool.Query(context.Background(), sql)
 	if err != nil {
 		return nil, err
 	}
 
-	posts, err := pgx.CollectRows(rows, scanLatestPosts)
+	posts, err := pgx.CollectRows(rows, scanPostDetails)
 	if err != nil {
 		return nil, err
 	}
 
 	// Key: sport_name
-	pm := make(map[string][]*PostData)
+	pm := make(map[string][]*PostDetails)
 
 	for _, p := range posts {
 		// Make array at index if uninitialized
 		_, ok := pm[p.SportName]
 		if !ok {
-			pm[p.SportName] = make([]*PostData, 0)
+			pm[p.SportName] = make([]*PostDetails, 0)
 		}
 
-		pd := &PostData{
-			PostID:     p.PostID,
-			SkillLevel: p.SkillLevel,
-			CreatedAt:  p.CreatedAt,
-			UserID:     p.UserID,
-			Username:   p.Username,
-		}
-
-		pm[p.SportName] = append(pm[p.SportName], pd)
+		pm[p.SportName] = append(pm[p.SportName], p)
 	}
 
 	return pm, nil

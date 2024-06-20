@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"fmt"
+	"net/http"
+)
 
 type contextKey string
 
@@ -46,4 +49,13 @@ func (app *application) isAuthenticated(r *http.Request) bool {
 	}
 
 	return isAuthenticated
+}
+
+func (app *application) getSessionUserID(r *http.Request) (int, error) {
+	id, ok := app.sessionManager.Get(r.Context(), authenticatedUserIDSessionKey).(int)
+	if !ok {
+		return 0, fmt.Errorf("type assertion to int failed")
+	}
+
+	return id, nil
 }

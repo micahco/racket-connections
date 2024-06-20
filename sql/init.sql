@@ -32,10 +32,10 @@ CREATE TABLE IF NOT EXISTS sports (
 
 CREATE TABLE IF NOT EXISTS posts (
     id BIGSERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
-    sport_id INT NOT NULL,
     skill_level INT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    user_id INT NOT NULL,
+    sport_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (sport_id) REFERENCES sports(id) ON DELETE CASCADE
 );
@@ -43,30 +43,42 @@ CREATE TABLE IF NOT EXISTS posts (
 /*
  * VIEWS
  */
-
--- Returns the last three posts for each sport
-CREATE OR REPLACE VIEW latest_posts AS
-WITH LatestPosts AS (
-    SELECT
-        p.id,
-        p.user_id,
-        p.sport_id,
-        p.skill_level,
-        p.created_at,
-        ROW_NUMBER() OVER (PARTITION BY p.sport_id ORDER BY p.id DESC) AS row_num
-    FROM
-        posts p
-)
+CREATE OR REPLACE VIEW numbered_posts_by_sport AS
 SELECT
-    p.id AS post_id,
-    p.skill_level AS skill_level,
-    p.created_at AS created_at,
-    u.id AS user_id,
+        *,
+        ROW_NUMBER() OVER (
+            PARTITION BY sport_id
+            ORDER BY id
+        )
+    FROM
+        posts;
+
+CREATE OR REPLACE VIEW post_details AS
+SELECT
+    p.id,
+    skill_level,
+    p.created_at,
+    user_id,
     u.name AS user_name,
+    sport_id,
     s.name AS sport_name
 FROM
-    LatestPosts p
-    JOIN users u ON p.user_id = u.id
-    JOIN sports s ON p.sport_id = s.id
+    posts p
+    INNER JOIN users u ON p.user_id = u.id
+    INNER JOIN sports s ON p.sport_id = s.id;
+
+CREATE OR REPLACE VIEW latest_posts AS
+SELECT
+    p.id,
+    skill_level,
+    p.created_at,
+    user_id,
+    u.name AS user_name,
+    sport_id,
+    s.name AS sport_name
+FROM
+    numbered_posts_by_sport p
+    INNER JOIN users u ON p.user_id = u.id
+    INNER JOIN sports s ON p.sport_id = s.id
 WHERE
-    p.row_num <= 3;
+    ROW_NUMBER <= 3;
