@@ -10,7 +10,7 @@
             Enter the email address associated with your account. A link to reset your password will be sent to your email.
         </p>
         
-        <form class="w-full max-w-sm" action="/auth/reset" method="POST">
+        <form class="w-full max-w-xs" action="/auth/reset" method="POST">
             <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
 
             {{template "form-email" .}}

@@ -6,16 +6,6 @@ VALUES
     ('Zendaya', 'zend@oregonstate.edu', 'hsfdasdhfjkshdfjlkhsa')
 ON CONFLICT (email) DO NOTHING;
 
-INSERT INTO sports (name) 
-VALUES 
-    ('Tennis'),
-    ('Badminton'),
-    ('Table Tennis'),
-    ('Pickleball'),
-    ('Racquetball'),
-    ('Squash')
-ON CONFLICT (name) DO NOTHING;
-
 INSERT INTO posts (user_id, sport_id, skill_level)
 VALUES
     (1, 1, 2),

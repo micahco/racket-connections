@@ -58,16 +58,16 @@ func (app *application) routes() http.Handler {
 		r.Route("/profile", func(r chi.Router) {
 			r.Use(app.requireAuthentication)
 
-			r.Get("/", app.handleAuthProfileGet)
+			r.Get("/", app.handleProfileGet)
 
-			r.Get("/edit", app.handleAuthProfileGet)
-			r.Post("/edit", app.handleAuthProfilePost)
+			r.Get("/edit", app.handleProfileEditGet)
+			r.Post("/edit", app.handleProfileEditPost)
 
-			r.Post("/delete", app.handleAuthProfilePost)
+			r.Post("/delete", app.handleProfileDeletePost)
 		})
 
 		r.Route("/posts", func(r chi.Router) {
-			r.Use(app.requireAuthentication)
+			//r.Use(app.requireAuthentication)
 
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
@@ -75,13 +75,16 @@ func (app *application) routes() http.Handler {
 			r.Get("/latest", app.handlePostsLatestGet)
 
 			r.Route("/{id}", func(r chi.Router) {
-				r.Get("/*", app.handlePostsIDGet)
-				r.Post("/", app.handlePostsIDPost)
+				r.Get("/*", app.handlePostsIdGet)
 
-				r.Get("/edit", app.handlePostsIDEditGet)
+				r.Get("/edit", app.handlePostsIdEditGet)
+				r.Post("/edit", app.handlePostsIdEditPost)
+
+				r.Post("/edit", app.handlePostsIdDeletePost)
 			})
 
 			r.Get("/new", app.handlePostsNewGet)
+			r.Post("/new", app.handlePostsNewPost)
 		})
 	})
 
@@ -288,7 +291,7 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 	app.sessionManager.RenewToken(r.Context())
 	app.sessionManager.Put(r.Context(), verificationEmailSessionKey, form.email)
 
-	app.flash(r, "A link to activate your account has been emailed to the address provided.")
+	app.flash(r, "A link to activate your account has been sent to the email address provided.")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -361,7 +364,7 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 		if errors.Is(err, models.ErrNoRecord) {
 			unauthorizedError(w)
 		} else if errors.Is(err, models.ErrExpiredVerification) {
-			app.flash(r, "Your verification token is expired. Please signup again.")
+			app.flash(r, "Expired verification token.")
 
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 		} else {
@@ -513,7 +516,6 @@ func (app *application) handleAuthResetUpdatePost(w http.ResponseWriter, r *http
 	}
 
 	email := app.sessionManager.GetString(r.Context(), resetEmailSessionKey)
-	app.infoLog.Println("sessionEmail:", email)
 	if form.email != "" {
 		email = form.email
 	}
@@ -569,17 +571,25 @@ func (app *application) handleAuthResetUpdatePost(w http.ResponseWriter, r *http
 
 	app.sessionManager.Clear(r.Context())
 
-	app.flash(r, "Successfully reset password. Please login.")
+	app.flash(r, "Successfully updated password. Please login.")
 
 	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }
 
-func (app *application) handleAuthProfileGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "show user profile")
 }
 
-func (app *application) handleAuthProfilePost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleProfileEditGet(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "show edit profile form")
+}
+
+func (app *application) handleProfileEditPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "update user profile")
+}
+
+func (app *application) handleProfileDeletePost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "delete user profile")
 }
 
 func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
@@ -593,22 +603,40 @@ func (app *application) handlePostsPost(w http.ResponseWriter, r *http.Request) 
 func (app *application) handlePostsLatestGet(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 
-	p, err := app.posts.Latest()
+	m, err := app.posts.Latest()
 	if err != nil {
 		app.serverError(w, err)
 
 		return
 	}
 
-	data.SportsPostsMap = p
+	data.SportsPostsMap = m
+
+	s, err := app.sports.All()
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	data.Sports = s
 
 	app.render(w, http.StatusOK, "posts-latest.html", data)
 }
 
-func (app *application) handlePostsIDGet(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+func (app *application) handlePostsIdGet(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	if idParam == "" {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
+	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
+
+		return
 	}
 
 	p, err := app.posts.Get(id)
@@ -625,15 +653,15 @@ func (app *application) handlePostsIDGet(w http.ResponseWriter, r *http.Request)
 	fmt.Fprint(w, p)
 }
 
-func (app *application) handlePostsIDPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "update post")
-}
-
-func (app *application) handlePostsIDEditGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handlePostsIdEditGet(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "edit post")
 }
 
-func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handlePostsIdEditPost(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "edit post")
+}
+
+func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.Request) {
 	_, err := app.getSessionUserID(r)
 	if err != nil {
 		unauthorizedError(w)
@@ -641,5 +669,110 @@ func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	app.render(w, http.StatusOK, "posts-new.html", app.newTemplateData(r))
+	fmt.Fprint(w, "delete post")
+}
+
+func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request) {
+	data := app.newTemplateData(r)
+
+	data.Queries.Sport = r.URL.Query().Get("sport")
+
+	sports, err := app.sports.All()
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	data.Sports = sports
+
+	skills, err := app.skills.All()
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	data.Skills = skills
+
+	app.render(w, http.StatusOK, "posts-new.html", data)
+}
+
+type newPostForm struct {
+	sport      int
+	skillLevel int
+	comment    string
+	validator.Validator
+}
+
+func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Request) {
+	userID, err := app.getSessionUserID(r)
+	if err != nil {
+		unauthorizedError(w)
+
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
+	sport, err := strconv.Atoi(r.Form.Get("sport"))
+	if err != nil {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
+	// Check if user already has post with sport
+	exists, err := app.posts.Exists(userID, sport)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	// TODO: If so, redirect to that post
+	if exists {
+		http.Error(w, "user already has post in sport", http.StatusConflict)
+
+		return
+	}
+
+	skill, err := strconv.Atoi(r.Form.Get("skill-level"))
+	if err != nil {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
+	form := newPostForm{
+		sport:      sport,
+		skillLevel: skill,
+		comment:    r.Form.Get("comment"),
+	}
+
+	form.Validate(validator.MaxChars(form.comment, 254), "invalid comment: must be no more than 254 characters long")
+	form.Validate(validator.PermittedInt(form.sport, 1, 2, 3, 4, 5, 6), "invalid sport")
+	form.Validate(validator.PermittedInt(form.skillLevel, 1, 2, 3, 4, 5), "invalid skill level")
+
+	if !form.IsValid() {
+		validationError(w, form.Validator)
+
+		return
+	}
+
+	postID, err := app.posts.Insert(form.comment, form.skillLevel, userID, form.sport)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	url := fmt.Sprintf("/posts/%d", postID)
+
+	http.Redirect(w, r, url, http.StatusSeeOther)
 }

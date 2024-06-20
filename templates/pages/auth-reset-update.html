@@ -6,7 +6,7 @@
             New Password
         </h1>
     
-        <form class="w-full max-w-sm" action="/auth/reset/update" method="POST">
+        <form class="w-full max-w-xs" action="/auth/reset/update" method="POST">
             <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
 
             {{if not .HasSessionEmail}}

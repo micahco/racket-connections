@@ -1,42 +1,48 @@
 {{define "title"}}Latest Posts{{end}}
 
 {{define "main"}}
-    <section>
+    <section class="flex flex-wrap gap-x-16 gap-y-6 items-center justify-between md:mb-6">
         <h1 class="text-2xl font-bold">
             Latest Posts
         </h1>
-    </section>
-    
-    {{range $key, $value := .SportsPostsMap}}
-        <section class="md:flex md:items-start gap-8 w-full mb-4">
-            <div class="md:w-32 md:text-right pt-4">
-                <h2 class="text-xl">
-                    <a class="" href="/posts?sport={{queryEscape $key}}">
-                        {{$key}}:
-                    </a>
-                </h2>
-            </div>
-            <ul class="md:flex gap-8 w-full">
-            {{range $value}}
-                <li class="md:w-1/3 md:m-0 max-w-xs mt-4">
-                    <a class="block p-4 w-full rounded transition shadow-sm hover:shadow-md hover:no-underline border hover:ring-1 ring-blue-600 border-gray-200 bg-white" href="/posts/{{.PostID}}/{{queryEscape .Username}}">
-                        <div class="flex flex-col gap-2">
-                            <span class="text-gray-700">{{.Username}}</span>
 
-                            <span class="text-sm text-gray-500">Skill: {{.SkillLevel}}</span>
-                            
-                            <span class="text-sm self-end text-gray-500">
-                                {{if isToday .CreatedAt}}
-                                    Today
-                                {{else}}
-                                    {{daysAgo .CreatedAt}} days ago
-                                {{end}}
-                            </span>
-                        </div>
-                    </a>
-                </li>
-            {{end}}
-            </ul>
-        </section>
+        <a class="font-bold py-2 px-4 rounded bg-beaver-orange hover:bg-gray-700 hover:no-underline focus:ring-blue-600 focus:border-blue-600 text-white" href="/posts/new">
+            Create new post
+        </a>
+    </section>
+
+    {{range $s := .Sports}}
+        {{if $p := index $.SportsPostsMap $s.ID}}
+            <section class="md:flex md:items-start gap-6 w-full mb-4">
+                <div class="md:w-32 md:text-right pt-2">
+                    <h2 class="text-xl">
+                        <a class="capitalize" href="/posts?sport={{queryEscape $s.Name}}">
+                            {{$s.Name}}
+                        </a>
+                    </h2>
+                </div>
+                <ul class="md:flex gap-8 w-full">
+                {{range $p}}
+                    <li class="md:w-1/3 md:m-0 max-w-xs mt-4">
+                        <a class="block p-4 w-full rounded transition shadow-sm hover:shadow-md hover:no-underline border hover:ring-1 ring-blue-600 border-gray-200 bg-gray-50" href="/posts/{{.PostID}}/{{queryEscape .Username}}">
+                            <div class="flex flex-col gap-2">
+                                <span class="text-gray-800">{{.Username}}</span>
+
+                                <span class="text-sm text-gray-600">Skill: {{.SkillLevel}}</span>
+                                
+                                <span class="text-sm self-end text-gray-600">
+                                    {{if isToday .CreatedAt}}
+                                        Today
+                                    {{else}}
+                                        {{daysAgo .CreatedAt}} days ago
+                                    {{end}}
+                                </span>
+                            </div>
+                        </a>
+                    </li>
+                {{end}}
+                </ul>
+            </section>
+        {{end}}
     {{end}}
 {{end}}

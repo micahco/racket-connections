@@ -15,14 +15,23 @@ import (
 	"github.com/micahco/racket-connections/internal/models"
 )
 
+type templateQueries struct {
+	Sport string
+	ID    int
+}
+
 type templateData struct {
 	CurrentYear     int
 	Flash           string
 	IsAuthenticated bool
 	CSRFToken       string
+	Queries         *templateQueries
 	HasSessionEmail bool
-	SportsPostsMap  map[string][]*models.PostDetails
 	Post            *models.PostDetails
+	Posts           []*models.PostDetails
+	Skills          []*models.SkillLevel
+	Sports          []*models.Sport
+	SportsPostsMap  map[int][]*models.PostDetails
 }
 
 func (app *application) newTemplateData(r *http.Request) *templateData {
@@ -31,6 +40,8 @@ func (app *application) newTemplateData(r *http.Request) *templateData {
 		Flash:           app.sessionManager.PopString(r.Context(), "flash"),
 		IsAuthenticated: app.isAuthenticated(r),
 		CSRFToken:       nosurf.Token(r),
+		Queries:         &templateQueries{},
+		HasSessionEmail: false,
 	}
 }
 

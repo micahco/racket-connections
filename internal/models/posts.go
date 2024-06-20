@@ -18,21 +18,25 @@ func NewPostModel(pool *pgxpool.Pool) *PostModel {
 }
 
 type PostDetails struct {
-	PostID     int
-	SkillLevel int
-	CreatedAt  time.Time
-	UserID     int
-	Username   string
-	SportID    int
-	SportName  string
+	PostID         int
+	Comment        string
+	CreatedAt      time.Time
+	SkillLevel     int
+	SkillLevelDesc string
+	UserID         int
+	Username       string
+	SportID        int
+	SportName      string
 }
 
 func scanPostDetails(row pgx.CollectableRow) (*PostDetails, error) {
 	var p PostDetails
 	err := row.Scan(
 		&p.PostID,
-		&p.SkillLevel,
+		&p.Comment,
 		&p.CreatedAt,
+		&p.SkillLevel,
+		&p.SkillLevelDesc,
 		&p.UserID,
 		&p.Username,
 		&p.SportID,
@@ -40,14 +44,15 @@ func scanPostDetails(row pgx.CollectableRow) (*PostDetails, error) {
 	return &p, err
 }
 
-func (m *PostModel) Insert(userID, sportID, skillLevel int) (int, error) {
+func (m *PostModel) Insert(comment string, skillLevel, userID, sportID int) (int, error) {
 	var id int
 
 	sql := `INSERT INTO posts
-		(user_id, sport_id, skill_level)
-		VALUES($1, $2, $3) RETURNING id;`
+		(comment, skill_level, user_id, sport_id)
+		VALUES($1, $2, $3, $4) RETURNING id;`
 
-	err := m.pool.QueryRow(context.Background(), sql, userID, sportID, skillLevel).Scan(&id)
+	err := m.pool.QueryRow(context.Background(), sql,
+		comment, skillLevel, userID, sportID).Scan(&id)
 
 	return id, err
 }
@@ -78,7 +83,8 @@ func (m *PostModel) Exists(userID, sportID int) (bool, error) {
 	return exists, err
 }
 
-func (m *PostModel) Latest() (map[string][]*PostDetails, error) {
+// Returns map with key Sport ID
+func (m *PostModel) Latest() (map[int][]*PostDetails, error) {
 	sql := "SELECT * FROM latest_posts;"
 
 	rows, err := m.pool.Query(context.Background(), sql)
@@ -91,17 +97,17 @@ func (m *PostModel) Latest() (map[string][]*PostDetails, error) {
 		return nil, err
 	}
 
-	// Key: sport_name
-	pm := make(map[string][]*PostDetails)
+	// Key: Sport ID
+	pm := make(map[int][]*PostDetails)
 
 	for _, p := range posts {
 		// Make array at index if uninitialized
-		_, ok := pm[p.SportName]
+		_, ok := pm[p.SportID]
 		if !ok {
-			pm[p.SportName] = make([]*PostDetails, 0)
+			pm[p.SportID] = make([]*PostDetails, 0)
 		}
 
-		pm[p.SportName] = append(pm[p.SportName], p)
+		pm[p.SportID] = append(pm[p.SportID], p)
 	}
 
 	return pm, nil

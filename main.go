@@ -23,6 +23,8 @@ type application struct {
 	errorLog       *log.Logger
 	infoLog        *log.Logger
 	posts          *models.PostModel
+	skills         *models.SkillModel
+	sports         *models.SportModel
 	users          *models.UserModel
 	verifications  *models.VerificationModel
 	templateCache  map[string]*template.Template
@@ -86,6 +88,8 @@ func main() {
 		errorLog:       errorLog,
 		infoLog:        infoLog,
 		posts:          models.NewPostModel(pool),
+		skills:         models.NewSkillModel(pool),
+		sports:         models.NewSportModel(pool),
 		users:          models.NewUserModel(pool),
 		verifications:  models.NewVerificationModel(pool),
 		templateCache:  tc,
