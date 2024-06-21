@@ -18,13 +18,13 @@ func NewPostModel(pool *pgxpool.Pool) *PostModel {
 }
 
 type PostDetails struct {
-	PostID         int
+	ID             int
 	Comment        string
 	CreatedAt      time.Time
 	SkillLevel     int
 	SkillLevelDesc string
 	UserID         int
-	Username       string
+	UserName       string
 	SportID        int
 	SportName      string
 }
@@ -32,13 +32,13 @@ type PostDetails struct {
 func scanPostDetails(row pgx.CollectableRow) (*PostDetails, error) {
 	var p PostDetails
 	err := row.Scan(
-		&p.PostID,
+		&p.ID,
 		&p.Comment,
 		&p.CreatedAt,
 		&p.SkillLevel,
 		&p.SkillLevelDesc,
 		&p.UserID,
-		&p.Username,
+		&p.UserName,
 		&p.SportID,
 		&p.SportName)
 	return &p, err
@@ -73,14 +73,35 @@ func (m *PostModel) Get(id int) (*PostDetails, error) {
 	return p, err
 }
 
-func (m *PostModel) Exists(userID, sportID int) (bool, error) {
-	var exists bool
+func (m *PostModel) GetID(userID, sportID int) (int, error) {
+	var id int
 
-	sql := "SELECT EXISTS(SELECT true FROM posts WHERE user_id = $1 AND sport_id = $2);"
+	sql := "SELECT id FROM posts WHERE user_id = $1 AND sport_id = $2;"
 
-	err := m.pool.QueryRow(context.Background(), sql, userID, sportID).Scan(&exists)
+	err := m.pool.QueryRow(context.Background(), sql, userID, sportID).Scan(&id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return 0, ErrNoRecord
+	}
 
-	return exists, err
+	return id, err
+}
+
+func (m *PostModel) GetUserID(id int) (int, error) {
+	var userID int
+
+	sql := "SELECT user_id FROM posts WHERE id = $1;"
+
+	err := m.pool.QueryRow(context.Background(), sql, id).Scan(&userID)
+
+	return userID, err
+}
+
+func (m *PostModel) Delete(id int) error {
+	sql := "DELETE FROM posts WHERE id = $1;"
+
+	_, err := m.pool.Exec(context.Background(), sql, id)
+
+	return err
 }
 
 // Returns map with key Sport ID

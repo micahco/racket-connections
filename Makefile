@@ -1,9 +1,6 @@
 include .env
 
-docker-run:
-	docker run --name racket-connections -e POSTGRES_PASSWORD=${RC_DB_PASS} -d -p 5432:5432 postgres
-
-docker-start:
+docker:
 	docker start racket-connections && sleep 1
 
 pg-drop:
@@ -16,12 +13,12 @@ pg-sample:
 	cat ./sql/sample.sql | docker exec -i racket-connections psql -U postgres -d postgres
 
 css:
-	./tailwindcss -i ./templates/main.css -o ./static/main.css --watch
+	./tailwindcss -i ./ui/input.css -o ./ui/static/main.css --watch
 
 css-minify:
-	./tailwindcss -i ./templates/main.css -o ./static/main.css --minify
+	./tailwindcss -i ./ui/input.css -o ./ui/static/main.css --minify
 
-run: docker-start pg-drop pg-init pg-sample
+run: docker pg-drop pg-init pg-sample
 	go run . \
 		-dsn=postgres://postgres:${RC_DB_PASS}@localhost:5432/postgres \
 		-smtp-host=${RC_SMTP_HOST} \
@@ -33,10 +30,10 @@ dev:
 	${MAKE} -j3 css run
 
 build:
-	go build -o ./bin/rc
+	go build -o ./bin/rc-server
 
-deploy: docker-start css-minify build
-	./bin/rc \
+deploy: docker css-minify build
+	./bin/rc-server \
 		-dsn=postgres://postgres:${RC_DB_PASS}@localhost:5432/postgres \
 		-smtp-host=${RC_SMTP_HOST} \
 		-smtp-pass=${RC_SMTP_PASS} \

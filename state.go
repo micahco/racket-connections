@@ -38,10 +38,6 @@ func (app *application) logout(r *http.Request) error {
 	return nil
 }
 
-func (app *application) flash(r *http.Request, message string) {
-	app.sessionManager.Put(r.Context(), "flash", message)
-}
-
 func (app *application) isAuthenticated(r *http.Request) bool {
 	isAuthenticated, ok := r.Context().Value(isAuthenticatedContextKey).(bool)
 	if !ok {
@@ -58,4 +54,35 @@ func (app *application) getSessionUserID(r *http.Request) (int, error) {
 	}
 
 	return id, nil
+}
+
+type FlashMessageType string
+
+const (
+	FlashSuccess FlashMessageType = "success"
+	FlashInfo    FlashMessageType = "info"
+	FlashError   FlashMessageType = "error"
+)
+
+type FlashMessage struct {
+	Type    FlashMessageType
+	Message string
+}
+
+func (app *application) flash(r *http.Request, f FlashMessage) {
+	app.sessionManager.Put(r.Context(), "flash", f)
+}
+
+func (app *application) popFlash(r *http.Request) FlashMessage {
+	exists := app.sessionManager.Exists(r.Context(), "flash")
+
+	if exists {
+		f, ok := app.sessionManager.Pop(r.Context(), "flash").(FlashMessage)
+
+		if ok {
+			return f
+		}
+	}
+
+	return FlashMessage{}
 }

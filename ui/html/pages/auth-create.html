@@ -11,7 +11,7 @@
     
             {{template "form-name" .}}
     
-            {{if not .HasSessionEmail}}
+            {{if not .Data.HasSessionEmail}}
                 {{template "form-email" .}}
             {{end}}
     

@@ -3,7 +3,7 @@
 const colors = require('tailwindcss/colors')
 
 module.exports = {
-  content: ["./templates/**/*.html"],
+  content: ["./ui/html/**/*.html"],
   theme: {
     // https://communications.oregonstate.edu/brand-guide/visual-identity/colors
     colors: {
@@ -14,6 +14,10 @@ module.exports = {
       gray: colors.gray,
       blue: colors.blue,
       purple: colors.purple,
+      red: colors.red,
+      green: colors.green,
+      yellow: colors.yellow,
+      orange: colors.orange,
       "beaver-orange": "#D73F09",
       "electric-beav": "#F7A162",
     },

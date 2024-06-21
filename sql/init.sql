@@ -74,7 +74,7 @@ SELECT
         *,
         ROW_NUMBER() OVER (
             PARTITION BY sport_id
-            ORDER BY id
+            ORDER BY id DESC
         )
     FROM
         posts;

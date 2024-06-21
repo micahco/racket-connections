@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    color-scheme: light dark;
+}
+
+a {
+    @apply text-blue-600 hover:underline;
+}
+
+.flash {
+    @apply p-4 w-full text-center border rounded-md;
+}
+
+.flash-info {
+    @apply border-blue-600 text-blue-600 bg-blue-50;
+}
+
+.flash-success {
+    @apply border-green-600 text-green-600 bg-green-50;
+}
+
+.flash-error {
+    @apply border-red-600 text-red-600 bg-red-50;
+}

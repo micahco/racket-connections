@@ -8,20 +8,12 @@
     <link rel="stylesheet" href="/static/main.css">
 </head>
 <body class="max-w-4xl mx-auto px-6">
-    {{with .Flash}}
-        <dialog class="max-w-md w-fit p-6 shadow-lg  rounded border dark:border-gray-400 bg-white dark:bg-gray-700 dark:text-gray-100 backdrop:bg-black/25 backdrop:backdrop-blur-sm" id="flash">
-            <p>{{.}}</p>
-            <form class="flex mt-4 justify-end" method="dialog">
-                <button class="rounded focus:outline-none focus:ring hover:underline text-gray-600 dark:text-gray-100" autofocus>
-                    Close
-                </button>
-            </form>
-        </dialog>
-    {{end}}
-    <header class="flex gap-6 flex-wrap justify-between items-baseline my-16">
+    
+    <header class="flex gap-6 flex-wrap justify-between items-baseline mt-16">
         <a class="text-3xl font-bold text-beaver-orange" href="/">
             Racket Connections
         </a>
+
         {{if .IsAuthenticated}}
             <div class="flex flex-wrap-reverse gap-6 items-center">
                 <nav class="flex gap-6">
@@ -29,6 +21,7 @@
                     <a href="/ladders">Ladders</a>
                     <a href="/profile">Profile</a>
                 </nav>
+
                 <form action="/auth/logout" method="POST">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <button class="py-1 px-4 text-sm font-bold rounded-full border border-gray-400 bg-gray-200 hover:bg-gray-300 focus:bg-gray-400 text-gray-700">
@@ -38,20 +31,31 @@
             </div>
         {{end}}
     </header>
+
+    <div class="flex my-8">
+        {{if .Flash.Message}}
+            <div class="flash flash-{{.Flash.Type}}">
+                {{.Flash.Message}}
+            </div>
+        {{end}}
+    </div>
+
     <main class="flex flex-col gap-y-8">
         {{template "main" .}}
     </main>
+
     <footer class="flex flex-wrap justify-between items-end text-sm pt-8 mt-24 mb-8 text-gray-400 border-t border-gray-200">
         <nav class="flex flex-col justify-end gap-1">
             <a href="/links">Some useful links...</a>
             <a href="/about">About this website</a>
             <a href="https://github.com/micahco/racket-connections">Source Code</a>
         </nav>
+        
         <div>
             <p>&copy; {{.CurrentYear}}. Developed for Oregon State University. All rights reserved.</p>
         </div>
     </footer>
-    <script src="/static/script.js"></script>
+
 </body>
 </html>
 {{end}}

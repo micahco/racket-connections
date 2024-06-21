@@ -1,0 +1,108 @@
+{{define "title"}}Post Details - {{.Data.Post.UserName}}{{end}}
+
+{{define "main"}}
+    <div class="flex flex-wrap">
+        <section class="w-full max-w-xs">
+            <h1 class="text-2xl font-bold mb-4">
+                Post Details
+            </h1>
+
+            <table class="border border-collapse">
+                <tbody>
+                    <tr>
+                        <th class="border p-2 font-normal text-left text-gray-600">
+                            Name
+                        </th>
+                        <td class="border px-4 py-2">
+                            {{.Data.Post.UserName}}
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th class="border p-2 font-normal text-left text-gray-600">
+                            Sport
+                        </th>
+                        <td class="border px-4 py-2 capitalize">
+                            {{.Data.Post.SportName}}
+                        </td>
+                    </tr>
+        
+                    <tr>
+                        <th class="border p-2 font-normal text-left text-gray-600">
+                            Skill
+                        </th>
+                        <td class="border px-4 py-2 capitalize">
+                            {{.Data.Post.SkillLevel}} - {{.Data.Post.SkillLevelDesc}}
+                        </td>
+                    </tr>
+        
+                    <tr>
+                        <th class="border p-2 font-normal text-left text-gray-600">
+                            Created
+                        </th>
+                        <td class="border px-4 py-2">
+                            {{date .Data.Post.CreatedAt}}
+                        </td>
+                    </tr>
+
+                    {{with .Data.Post.Comment}}
+                        <tr>
+                            <th class="p-2 font-normal text-left text-gray-600" colspan="2">
+                                Comment
+                            </th>
+                        </tr>
+                        <tr>
+                            <td class="pl-2.5 pb-2.5" colspan="2">
+                                <p class="mt-1 text-sm">
+                                    {{.}}
+                                </p>
+                            </td>
+                        </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </section>
+        
+        <section class="w-full max-w-xs">    
+            {{if eq .Data.Post.UserID .Data.SessionUserID}}
+                <h2 class="text-xl mb-6">
+                    Manage Post
+                </h2>
+
+                <div class="flex gap-4">
+                    <a href="/posts/{{.Data.Post.ID}}/edit">
+                        Edit Post
+                    </a>
+    
+                    <form action="/posts/{{.Data.Post.ID}}/delete" method="POST" id="delete-post">
+                        <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+                        
+                        <button class="hover:underline text-red-600">
+                            Delete Post
+                        </button>
+                    </form>
+                </div>
+            {{else}}
+                <form action="/posts/{{.Data.Post.ID}}/connect" method="POST">
+                    <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+
+                    <div class="flex flex-col gap-4">
+                        <h2 class="text-xl">
+                            Create a Connection
+                        </h2>
+                        
+                        <textarea class="h-fit bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600" name="Message" id="Message" placeholder="Type your message here." rows="5" cols="33" required></textarea>
+
+                        <button class="font-bold py-2 px-4 rounded bg-beaver-orange hover:bg-gray-700 focus:ring-blue-600 focus:border-blue-600 text-white">
+                            Send Message
+                        </button>
+
+                        <p class="w-2/3 self-center text-center text-xs">
+                            This message will be sent directly to the user's email inbox.
+                        </p>
+                    </div>
+                </form>
+            {{end}}
+        </section>
+    </div>
+{{end}}

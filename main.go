@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/gob"
 	"flag"
 	"html/template"
 	"log"
@@ -100,6 +101,8 @@ func main() {
 			Address: *smtpUser,
 		},
 	}
+
+	gob.Register(FlashMessage{})
 
 	srv := &http.Server{
 		Addr:     *addr,
