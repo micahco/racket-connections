@@ -1,0 +1,17 @@
+{{define "title"}}Delete Post{{end}}
+
+{{define "main"}}
+    <section>
+        <h1>Delete Post</h1>
+
+        <form action="/posts/{{.Data.Post.ID}}/delete" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            
+            <button class="hover:underline text-red-600">
+                Delete Post
+            </button>
+        </form>
+    </section>
+{{end}}
+
+{{define "scripts"}}{{end}}

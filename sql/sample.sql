@@ -1,9 +1,9 @@
 INSERT INTO users (name, email, password_hash)
 VALUES
-    ('John Doe', 'johnd@oregonstate.edu', 'hsfdasdhfjkshdfjlkhsa'),
-    ('Sarah Jane', 'sarahd@oregonstate.edu', 'hsfdasdhfjkshdfjlkhsa'),
-    ('Chad Thunder', 'chadt@oregonstate.edu', 'hsfdasdhfjkshdfjlkhsa'),
-    ('Zendaya', 'zend@oregonstate.edu', 'hsfdasdhfjkshdfjlkhsa')
+    ('John Doe', 'johnd@oregonstate.edu', 'pswd'),
+    ('Sarah Jane', 'sarahd@oregonstate.edu', 'pswd'),
+    ('Chad Thunder', 'chadt@oregonstate.edu', 'pswd'),
+    ('Zendaya', 'zend@oregonstate.edu', 'pswd')
 ON CONFLICT (email) DO NOTHING;
 
 INSERT INTO posts (user_id, sport_id, skill_level)

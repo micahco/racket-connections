@@ -51,11 +51,8 @@ func (m *VerificationModel) Insert(token, email string) error {
 		VALUES($1, $2, $3);`
 
 	_, err := m.pool.Exec(context.Background(), sql, token, email, expiry)
-	if err != nil {
-		return err
-	}
 
-	return nil
+	return err
 }
 
 func (m *VerificationModel) Get(email string) (*Verification, error) {

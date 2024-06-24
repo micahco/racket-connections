@@ -554,6 +554,10 @@ video {
   --tw-contain-style:  ;
 }
 
+.visible {
+  visibility: visible;
+}
+
 .mx-auto {
   margin-left: auto;
   margin-right: auto;
@@ -582,6 +586,10 @@ video {
 
 .mb-8 {
   margin-bottom: 2rem;
+}
+
+.mr-1 {
+  margin-right: 0.25rem;
 }
 
 .mr-4 {
@@ -645,6 +653,14 @@ video {
   max-width: 56rem;
 }
 
+.max-w-lg {
+  max-width: 32rem;
+}
+
+.max-w-sm {
+  max-width: 24rem;
+}
+
 .max-w-xs {
   max-width: 20rem;
 }
@@ -699,6 +715,10 @@ video {
 
 .gap-24 {
   gap: 6rem;
+}
+
+.gap-3 {
+  gap: 0.75rem;
 }
 
 .gap-4 {
@@ -891,6 +911,10 @@ video {
 
 .capitalize {
   text-transform: capitalize;
+}
+
+.italic {
+  font-style: italic;
 }
 
 .text-beaver-orange {

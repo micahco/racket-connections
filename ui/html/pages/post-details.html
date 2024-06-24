@@ -63,7 +63,7 @@
             </table>
         </section>
         
-        <section class="w-full max-w-xs">    
+        <section class="w-full max-w-xs">
             {{if eq .Data.Post.UserID .Data.SessionUserID}}
                 <h2 class="text-xl mb-6">
                     Manage Post
@@ -71,38 +71,30 @@
 
                 <div class="flex gap-4">
                     <a href="/posts/{{.Data.Post.ID}}/edit">
-                        Edit Post
+                        Edit
                     </a>
     
-                    <form action="/posts/{{.Data.Post.ID}}/delete" method="POST" id="delete-post">
-                        <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
-                        
-                        <button class="hover:underline text-red-600">
-                            Delete Post
-                        </button>
-                    </form>
+                    <a class="text-red-600" href="/posts/{{.Data.Post.ID}}/delete">
+                        Delete
+                    </a>
                 </div>
             {{else}}
                 <form action="/posts/{{.Data.Post.ID}}/connect" method="POST">
-                    <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
                     <div class="flex flex-col gap-4">
                         <h2 class="text-xl">
                             Create a Connection
                         </h2>
                         
-                        <textarea class="h-fit bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600" name="Message" id="Message" placeholder="Type your message here." rows="5" cols="33" required></textarea>
-
-                        <button class="font-bold py-2 px-4 rounded bg-beaver-orange hover:bg-gray-700 focus:ring-blue-600 focus:border-blue-600 text-white">
-                            Send Message
-                        </button>
-
-                        <p class="w-2/3 self-center text-center text-xs">
-                            This message will be sent directly to the user's email inbox.
-                        </p>
+                        <nav class="flex flex-col gap-4">
+                            Contact information
+                        </nav>
                     </div>
                 </form>
             {{end}}
         </section>
     </div>
 {{end}}
+
+{{define "scripts"}}{{end}}

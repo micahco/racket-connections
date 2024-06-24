@@ -57,7 +57,7 @@ func (m *PostModel) Insert(comment string, skillLevel, userID, sportID int) (int
 	return id, err
 }
 
-func (m *PostModel) Get(id int) (*PostDetails, error) {
+func (m *PostModel) GetDetails(id int) (*PostDetails, error) {
 	sql := "SELECT * FROM post_details WHERE id = $1;"
 
 	rows, err := m.pool.Query(context.Background(), sql, id)

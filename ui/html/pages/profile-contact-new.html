@@ -1,0 +1,60 @@
+{{define "title"}}New Contact Method{{end}}
+
+{{define "main"}}
+    <section class="w-full max-w-lg">
+        <h1 class="text-2xl font-bold mb-4">
+            New Contact Method
+        </h1>
+
+        <p class="mb-2">
+            This is how other users will reach out to you to make connections.
+        </p>
+
+        <p class="mb-8">
+            <b class="mr-1">Note:</b> Your contact information will be visible to users of this site.
+        </p>
+
+        <div class="w-full max-w-sm">
+            <form action="/profile/contact/new" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+
+                {{with .Data.RefererPath}}
+                    <input type="hidden" name="referer" value="{{.}}">
+                {{end}}
+
+                <div class="md:flex gap-2 mb-6">
+                    <div class="md:w-1/4">
+                        <select class="capitalize bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600" id="contact-method" name="contact-method">
+                            {{range .Data.ContactMethods}}
+                                <option value="{{.ID}}">{{.Name}}</option>
+                            {{end}}
+                        </select>
+                    </div>
+                
+                    <div class="md:w-3/4">
+                        <input class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-600 focus:border-blue-600 block w-full p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-600 dark:focus:border-blue-600" id="contact-value" name="contact-value" required>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap items-center gap-3">
+                    <button class="font-bold py-2 px-4 rounded bg-beaver-orange hover:bg-gray-700 focus:ring-blue-600 focus:border-blue-600 text-white">
+                        Submit
+                    </button>
+
+                    {{if eq .Data.RefererPath "/auth/create"}}
+                        <div>
+                            <span class="italic mr-1">
+                                or
+                            </span>
+                            <a href="/">skip this part for now</a>
+                        </div>
+                    {{end}}
+                </div>
+            </form>
+        </div>
+    </section>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/scripts/new-contact.js"></script>
+{{end}}

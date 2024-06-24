@@ -55,6 +55,15 @@ func (app *application) routes() http.Handler {
 			r.Post("/edit", app.handleProfileEditPost)
 
 			r.Post("/delete", app.handleProfileDeletePost)
+
+			r.Route("/contact", func(r chi.Router) {
+				r.Get("/new", app.handleProfileContactNewGet)
+				r.Post("/new", app.handleProfileContactNewPost)
+
+				r.Get("/list", nil)
+
+				r.Post("/delete", nil)
+			})
 		})
 
 		r.Route("/posts", func(r chi.Router) {
@@ -71,6 +80,7 @@ func (app *application) routes() http.Handler {
 				r.Get("/edit", app.handlePostsIdEditGet)
 				r.Post("/edit", app.handlePostsIdEditPost)
 
+				r.Get("/delete", app.handlePostsIdDeleteGet)
 				r.Post("/delete", app.handlePostsIdDeletePost)
 			})
 

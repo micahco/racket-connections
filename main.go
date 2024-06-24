@@ -27,6 +27,7 @@ type application struct {
 	skills         *models.SkillModel
 	sports         *models.SportModel
 	users          *models.UserModel
+	contacts       *models.ContactModel
 	verifications  *models.VerificationModel
 	templateCache  map[string]*template.Template
 	sessionManager *scs.SessionManager
@@ -92,6 +93,7 @@ func main() {
 		skills:         models.NewSkillModel(pool),
 		sports:         models.NewSportModel(pool),
 		users:          models.NewUserModel(pool),
+		contacts:       models.NewContactModel(pool),
 		verifications:  models.NewVerificationModel(pool),
 		templateCache:  tc,
 		sessionManager: sm,

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"runtime/debug"
 	"strconv"
 	"strings"
@@ -200,7 +201,7 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 	}
 
 	url := fmt.Sprintf("%s/auth/create?token=%s", app.url, token)
-	html := fmt.Sprintf("<p>Please follow the link below to activate your account:<p>"+
+	html := fmt.Sprintf("<p>Please follow the link below to create your account:</p>"+
 		"<a href=\"%s\">%s</a>", url, url)
 
 	err = app.sendMail(form.email, "Email verification", html)
@@ -341,13 +342,7 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	f := FlashMessage{
-		Type:    FlashSuccess,
-		Message: "Successfully created account. Welcome to Racket Connections!",
-	}
-	app.flash(r, f)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/profile/contact/new", http.StatusSeeOther)
 }
 
 func (app *application) handleAuthResetGet(w http.ResponseWriter, r *http.Request) {
@@ -405,7 +400,7 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 	}
 
 	url := fmt.Sprintf("%s/auth/reset/update?token=%s", app.url, token)
-	html := fmt.Sprintf("<p>Please follow the link below to reset your password:<p>"+
+	html := fmt.Sprintf("<p>Please follow the link below to reset your password:</p>"+
 		"<a href=\"%s\">%s</a>", url, url)
 
 	err = app.sendMail(form.email, "Reset password", html)
@@ -532,6 +527,98 @@ func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request)
 	fmt.Fprint(w, "show user profile")
 }
 
+type newContactData struct {
+	ContactMethods []*models.ContactMethod
+	RefererPath    string
+}
+
+func (app *application) handleProfileContactNewGet(w http.ResponseWriter, r *http.Request) {
+	refPath := ""
+
+	ref, err := url.Parse(r.Referer())
+	if err == nil {
+		refPath = ref.Path
+	}
+
+	m, err := app.contacts.AllMethods()
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	data := newContactData{
+		ContactMethods: m,
+		RefererPath:    refPath,
+	}
+
+	app.render(w, r, http.StatusOK, "profile-contact-new.html", data)
+}
+
+type newContactForm struct {
+	referer string
+	value   string
+	validator.Validator
+}
+
+func (app *application) handleProfileContactNewPost(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
+	methodID, err := strconv.Atoi(r.Form.Get("contact-method"))
+	if err != nil {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
+	form := newContactForm{
+		referer: r.Form.Get("referer"),
+		value:   r.Form.Get("contact-value"),
+	}
+
+	form.Validate(validator.NotBlank(form.value), "invalid value: cannot be blank")
+
+	if methodID == 1 {
+		form.Validate(validator.Matches(form.value, validator.EmailRX), "invalid email: must be a valid email address")
+		form.Validate(validator.MaxChars(form.value, 254), "invalid email: must be no more than 254 characters long")
+	} else {
+		form.Validate(validator.MaxChars(form.value, 100), "invalid value: must be no more than 100 characters long")
+	}
+
+	if !form.IsValid() {
+		validationError(w, form.Validator)
+
+		return
+	}
+
+	suid, err := app.getSessionUserID(r)
+	if err != nil {
+		unauthorizedError(w)
+
+		return
+	}
+
+	err = app.contacts.Insert(suid, methodID, form.value)
+	if err != nil {
+		app.serverError(w, err)
+
+		return
+	}
+
+	redirectURL := "/profile"
+
+	if form.referer == "/auth/create" {
+		redirectURL = "/"
+	} else if form.referer == "/posts/new" {
+		redirectURL = form.referer
+	}
+
+	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
+}
+
 func (app *application) handleProfileEditGet(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "show edit profile form")
 }
@@ -600,7 +687,7 @@ func (app *application) handlePostsIdGet(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	p, err := app.posts.Get(id)
+	p, err := app.posts.GetDetails(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			clientError(w, http.StatusNotFound)
@@ -634,6 +721,10 @@ func (app *application) handlePostsIdEditPost(w http.ResponseWriter, r *http.Req
 	fmt.Fprint(w, "edit post")
 }
 
+func (app *application) handlePostsIdDeleteGet(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, "delete post")
+}
+
 func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	if idParam == "" {
@@ -649,7 +740,7 @@ func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	sessionUserID, err := app.getSessionUserID(r)
+	suid, err := app.getSessionUserID(r)
 	if err != nil {
 		unauthorizedError(w)
 
@@ -657,7 +748,7 @@ func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.R
 	}
 
 	userID, err := app.posts.GetUserID(postID)
-	if err != nil || sessionUserID != userID {
+	if err != nil || suid != userID {
 		unauthorizedError(w)
 
 		return

@@ -25,6 +25,20 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS contact_methods (
+    id BIGSERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_contacts (
+    id BIGSERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    contact_method_id INT NOT NULL,
+    value TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (contact_method_id) REFERENCES contact_methods(id) ON DELETE CASCADE
+);
+
 CREATE TABLE IF NOT EXISTS skill_levels (
     value INT PRIMARY KEY,
     description TEXT UNIQUE NOT NULL
@@ -46,6 +60,13 @@ CREATE TABLE IF NOT EXISTS posts (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (sport_id) REFERENCES sports(id) ON DELETE CASCADE
 );
+
+INSERT INTO contact_methods (name) 
+VALUES 
+    ('email'),
+    ('phone'),
+    ('other')
+ON CONFLICT (name) DO NOTHING;
 
 INSERT INTO sports (name) 
 VALUES 
@@ -86,9 +107,9 @@ SELECT
     p.created_at,
     l.value AS skill_level,
     l.description AS skill_level_description,
-    user_id,
+    u.id AS user_id,
     u.name AS user_name,
-    sport_id,
+    s.id AS sport_id,
     s.name AS sport_name
 FROM
     posts p
@@ -103,9 +124,9 @@ SELECT
     p.created_at,
     l.value AS skill_level,
     l.description AS skill_level_description,
-    user_id,
+    u.id AS user_id,
     u.name AS user_name,
-    sport_id,
+    s.id AS sport_id,
     s.name AS sport_name
 FROM
     numbered_posts_by_sport p

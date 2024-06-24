@@ -7,7 +7,7 @@
         </h1>
     
         <form class="w-full max-w-xs" action="/auth/create" method="POST">
-            <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     
             {{template "form-name" .}}
     
@@ -21,4 +21,6 @@
         </form>
     </section>
 {{end}}
+
+{{define "scripts"}}{{end}}
     

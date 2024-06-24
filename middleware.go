@@ -44,7 +44,7 @@ func secureHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) crsfFailure() http.Handler {
+func (app *application) crsfFailureHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		app.infoLog.Printf("CRSF FAILURE: %s %s", r.Method, r.URL.RequestURI())
 
@@ -60,7 +60,7 @@ func (app *application) noSurf(next http.Handler) http.Handler {
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	})
-	crsfHandler.SetFailureHandler(app.crsfFailure())
+	crsfHandler.SetFailureHandler(app.crsfFailureHandler())
 
 	return crsfHandler
 }

@@ -17,7 +17,7 @@
         </h2>
 
         <form action="/auth/login" method="POST">
-            <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             
             {{template "form-email" .}}
             
@@ -41,7 +41,7 @@
         </h2>
         
         <form action="/auth/signup" method="POST">
-            <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             
             {{template "form-email" .}}
             
@@ -50,4 +50,6 @@
     </div>
 </section>
 {{end}}
+
+{{define "scripts"}}{{end}}
     
