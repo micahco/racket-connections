@@ -28,7 +28,7 @@ func scanSport(row pgx.CollectableRow) (*Sport, error) {
 }
 
 func (m *SportModel) All() ([]*Sport, error) {
-	sql := "SELECT * FROM sports;"
+	sql := "SELECT * FROM sport_;"
 
 	rows, err := m.pool.Query(context.Background(), sql)
 	if err != nil {
@@ -36,4 +36,14 @@ func (m *SportModel) All() ([]*Sport, error) {
 	}
 
 	return pgx.CollectRows(rows, scanSport)
+}
+
+func (m *SportModel) GetID(name string) (int, error) {
+	var id int
+
+	sql := "SELECT id_ FROM sport_ WHERE name_ = $1;"
+
+	err := m.pool.QueryRow(context.Background(), sql, name).Scan(&id)
+
+	return id, err
 }

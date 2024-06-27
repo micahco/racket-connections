@@ -1,0 +1,106 @@
+{{define "title"}}Register{{end}}
+
+{{define "main"}}
+    <h1>
+        Register
+    </h1>
+
+    <form action="/auth/register" method="POST">
+        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        
+        <h2>
+            Login
+        </h2>
+
+        {{if not .Data.HasSessionEmail}}
+            <div>
+                <label for="email">Email</label>
+                <input type="email" name="email" autocomplete="username" required>
+            </div>
+        {{end}}
+
+        <div>
+            <label for="password">Password</label>
+            <input type="password" name="password" autocomplete="current-password" required>
+        </div>
+        
+        <h2>
+            Contact Information
+        </h2>
+
+        <p>
+            This is how other users will reach out to you to make connections. If adding an email address, we recommend that you use a personal email address instead of your school email.
+        </p>
+
+        <div>
+            <label for="name">Full Name</label>
+            <input type="text" name="name" autocomplete="name" required>
+        </div>
+        
+        <select id="contact-method" name="contact-method">
+            {{range .Data.ContactMethods}}
+                <option value="{{.Name}}">{{.Name}}</option>
+            {{end}}
+        </select>
+        <input type="text" id="contact-value" name="contact-value">
+
+        <h2>
+            Availability
+        </h2>
+
+        <figure>
+            <figcaption>
+
+            </figcaption>
+            <table>
+                <thead>
+                    <tr>
+                        <th scope="col">
+                            Day
+                        </th>
+                        {{range .Data.Times}}
+                            <th scope="col">
+                                {{.Name}}
+                            </th>
+                        {{end}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range $day := .Data.Days}}
+                        <tr>
+                            <th scope="row">
+                                {{$day.Abbrev}}
+                            </th>
+                            {{range $time := $.Data.Times}}
+                                <td>
+                                    <input type="checkbox" name="{{$day.Name}}-{{$time.Name}}">
+                                </td>
+                            {{end}}
+                        </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            <footer>
+                <dl>
+                    <dt>Morning</dt>
+                    <dd>08:00 - 12:00</dd>
+
+                    <dt>Afternoon</dt>
+                    <dd>12:00 - 4:00</dd>
+
+                    <dt>Evening</dt>
+                    <dd>4:00 - 8:00</dd>
+                </dl>
+            </footer>
+        </figure>
+
+        <button>
+            Create Account
+        </button>
+    </form>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/scripts/register.js"></script>
+{{end}}
+    

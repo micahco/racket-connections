@@ -1,0 +1,46 @@
+{{define "title"}}{{.Data.Name}}{{end}}
+
+{{define "main"}}
+    <h1>
+        {{.Data.Name}}
+    </h1>
+
+    <a href="/">Edit profile</a>
+
+    <h2>
+        Login
+    </h2>
+
+    <p>
+        Email: {{.Data.Email}}
+    </p>
+
+    <p>
+        <a href="/">Update password</a>
+    </p>
+
+    <h2>
+        Contact Methods
+    </h2>
+
+    <ul>
+        {{range .Data.Contacts}}
+            <li>
+                {{.Method}} - {{.Value}}
+            </li>
+        {{end}}
+    </ul>
+
+    <h2>
+        Availability
+    </h2>
+    <ul>
+        {{range .Data.Times}}
+            <li>
+                {{.Day}} - {{.Time}}
+            </li>
+        {{end}}
+    </ul>
+{{end}}
+
+{{define "scripts"}}{{end}}

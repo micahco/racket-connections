@@ -5,56 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{template "title" .}}</title>
+    <!-- No style
     <link rel="stylesheet" href="/static/main.css">
+    -->
 </head>
-<body class="max-w-4xl mx-auto px-6">
-    
-    <header class="flex gap-6 flex-wrap justify-between items-baseline mt-16">
-        <a class="text-3xl font-bold text-beaver-orange" href="/">
-            Racket Connections
-        </a>
+<body>
 
-        {{if .IsAuthenticated}}
-            <div class="flex flex-wrap-reverse gap-6 items-center">
-                <nav class="flex gap-6">
-                    <a href="/posts">Posts</a>
-                    <a href="/ladders">Ladders</a>
-                    <a href="/profile">Profile</a>
-                </nav>
+    {{if .Flash.Message}}
+        <div class="flash flash-{{.Flash.Type}}">
+            {{.Flash.Message}}
+        </div>
+    {{end}}
 
-                <form action="/auth/logout" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                    <button class="py-1 px-4 text-sm font-bold rounded-full border border-gray-400 bg-gray-200 hover:bg-gray-300 focus:bg-gray-400 text-gray-700">
-                        Logout
-                    </button>
-                </form>
-            </div>
-        {{end}}
-    </header>
-
-    <div class="flex my-8">
-        {{if .Flash.Message}}
-            <div class="flash flash-{{.Flash.Type}}">
-                {{.Flash.Message}}
-            </div>
-        {{end}}
-    </div>
-
-    <main class="flex flex-col gap-y-8">
+    <main>
         {{template "main" .}}
     </main>
-
-    <footer class="flex flex-wrap justify-between items-end text-sm pt-8 mt-24 mb-8 text-gray-400 border-t border-gray-200">
-        <nav class="flex flex-col justify-end gap-1">
-            <a href="/links">Some useful links...</a>
-            <a href="/about">About this website</a>
-            <a href="https://github.com/micahco/racket-connections">Source Code</a>
-        </nav>
-        
-        <div>
-            <p>&copy; {{.CurrentYear}}. Developed for Oregon State University. All rights reserved.</p>
-        </div>
-    </footer>
 
     {{template "scripts" .}}
 </body>

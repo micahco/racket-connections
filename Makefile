@@ -27,7 +27,7 @@ run: docker pg-drop pg-init pg-sample
 		-smtp-user=${RC_SMTP_USER} \
 
 dev:
-	${MAKE} -j3 css run
+	${MAKE} docker && ${MAKE} -j3 css run
 
 build:
 	go build -o ./bin/rc-server

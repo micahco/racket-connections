@@ -46,8 +46,8 @@ func scanVerification(row pgx.CollectableRow) (*Verification, error) {
 func (m *VerificationModel) Insert(token, email string) error {
 	expiry := time.Now().Add(expiration)
 
-	sql := `INSERT INTO verifications 
-		(token, email, expiry)
+	sql := `INSERT INTO verification_
+		(token_, email_, expiry_)
 		VALUES($1, $2, $3);`
 
 	_, err := m.pool.Exec(context.Background(), sql, token, email, expiry)
@@ -56,7 +56,7 @@ func (m *VerificationModel) Insert(token, email string) error {
 }
 
 func (m *VerificationModel) Get(email string) (*Verification, error) {
-	sql := "SELECT * FROM verifications WHERE email = $1;"
+	sql := "SELECT * FROM verification_ WHERE email_ = $1;"
 
 	rows, err := m.pool.Query(context.Background(), sql, email)
 	if err != nil {
@@ -72,8 +72,8 @@ func (m *VerificationModel) Get(email string) (*Verification, error) {
 }
 
 func (m *VerificationModel) Verify(token, email string) error {
-	sql := `SELECT * FROM verifications 
-		WHERE token = $1 AND email = $2;`
+	sql := `SELECT * FROM verification_ 
+		WHERE token_ = $1 AND email_ = $2;`
 
 	rows, err := m.pool.Query(context.Background(), sql, token, email)
 	if err != nil {
@@ -93,7 +93,7 @@ func (m *VerificationModel) Verify(token, email string) error {
 }
 
 func (m *VerificationModel) Purge(email string) error {
-	sql := "DELETE FROM verifications WHERE email = $1;"
+	sql := "DELETE FROM verification_ WHERE email_ = $1;"
 
 	_, err := m.pool.Exec(context.Background(), sql, email)
 

@@ -47,11 +47,13 @@ func (m *UserModel) Insert(name, email, password string) (int, error) {
 
 	var id int
 
-	sql := `INSERT INTO users 
-		(name, email, password_hash)
-		VALUES($1, $2, $3) RETURNING id;`
+	sql := `INSERT INTO user_ 
+		(name_, email_, password_hash_)
+		VALUES($1, $2, $3) RETURNING id_;`
 
-	err = m.pool.QueryRow(context.Background(), sql, name, email, hash).Scan(&id)
+	err = m.pool.QueryRow(context.Background(), sql,
+		name, email, hash).Scan(&id)
+
 	if pgErrCode(err) == pgerrcode.UniqueViolation {
 		return 0, ErrDuplicateEmail
 	}
@@ -60,7 +62,7 @@ func (m *UserModel) Insert(name, email, password string) (int, error) {
 }
 
 func (m *UserModel) Authenticate(email, password string) (int, error) {
-	sql := "SELECT * FROM users WHERE email = $1;"
+	sql := "SELECT * FROM user_ WHERE email_ = $1;"
 
 	rows, err := m.pool.Query(context.Background(), sql, email)
 	if err != nil {
@@ -91,7 +93,7 @@ func (m *UserModel) Authenticate(email, password string) (int, error) {
 func (m *UserModel) Exists(id int) (bool, error) {
 	var exists bool
 
-	sql := "SELECT EXISTS(SELECT true FROM users WHERE id = $1);"
+	sql := "SELECT EXISTS(SELECT true FROM user_ WHERE id_ = $1);"
 
 	err := m.pool.QueryRow(context.Background(), sql, id).Scan(&exists)
 
@@ -101,7 +103,7 @@ func (m *UserModel) Exists(id int) (bool, error) {
 func (m *UserModel) ExistsEmail(email string) (bool, error) {
 	var exists bool
 
-	sql := "SELECT EXISTS(SELECT true FROM users WHERE email = $1);"
+	sql := "SELECT EXISTS(SELECT true FROM user_ WHERE email_ = $1);"
 
 	err := m.pool.QueryRow(context.Background(), sql, email).Scan(&exists)
 
@@ -114,9 +116,32 @@ func (m *UserModel) UpdatePassword(email, password string) error {
 		return err
 	}
 
-	sql := "UPDATE users SET password_hash = $1 WHERE email = $2"
+	sql := "UPDATE users SET password_hash_ = $1 WHERE email_ = $2;"
 
 	_, err = m.pool.Exec(context.Background(), sql, hash, email)
 
 	return err
+}
+
+type UserProfile struct {
+	Name  string
+	Email string
+}
+
+func scanUserProfile(row pgx.CollectableRow) (*UserProfile, error) {
+	var u UserProfile
+	err := row.Scan(&u.Name, &u.Email)
+
+	return &u, err
+}
+
+func (m *UserModel) GetProfile(id int) (*UserProfile, error) {
+	sql := "SELECT name_, email_ FROM user_ WHERE id_ = $1;"
+
+	rows, err := m.pool.Query(context.Background(), sql, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return pgx.CollectOneRow(rows, scanUserProfile)
 }

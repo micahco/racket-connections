@@ -44,7 +44,7 @@ func secureHeaders(next http.Handler) http.Handler {
 	})
 }
 
-func (app *application) crsfFailureHandler() http.Handler {
+func (app *application) csrfFailureHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		app.infoLog.Printf("CRSF FAILURE: %s %s", r.Method, r.URL.RequestURI())
 
@@ -53,16 +53,16 @@ func (app *application) crsfFailureHandler() http.Handler {
 }
 
 func (app *application) noSurf(next http.Handler) http.Handler {
-	crsfHandler := nosurf.New(next)
-	crsfHandler.SetBaseCookie(http.Cookie{
+	csrfHandler := nosurf.New(next)
+	csrfHandler.SetBaseCookie(http.Cookie{
 		HttpOnly: true,
 		Path:     "/",
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
 	})
-	crsfHandler.SetFailureHandler(app.crsfFailureHandler())
+	csrfHandler.SetFailureHandler(app.csrfFailureHandler())
 
-	return crsfHandler
+	return csrfHandler
 }
 
 func (app *application) authenticate(next http.Handler) http.Handler {

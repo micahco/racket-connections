@@ -1,0 +1,25 @@
+{{define "header"}}
+<header>
+    <a>
+        Racket Connections
+    </a>
+
+    {{if .IsAuthenticated}}
+        <div>
+            <nav class="flex gap-6">
+                <a href="/posts">Posts</a>
+                <a href="/ladders">Ladders</a>
+                <a href="/profile">Profile</a>
+            </nav>
+ 
+            <form action="/auth/logout" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                
+                <button>
+                    Logout
+                </button>
+            </form>
+        </div>
+    {{end}}
+</header>
+{{end}}

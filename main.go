@@ -24,10 +24,11 @@ type application struct {
 	errorLog       *log.Logger
 	infoLog        *log.Logger
 	posts          *models.PostModel
-	skills         *models.SkillModel
+	skills         *models.SkillLevelModel
 	sports         *models.SportModel
 	users          *models.UserModel
 	contacts       *models.ContactModel
+	timeslots      *models.TimeslotModel
 	verifications  *models.VerificationModel
 	templateCache  map[string]*template.Template
 	sessionManager *scs.SessionManager
@@ -90,10 +91,11 @@ func main() {
 		errorLog:       errorLog,
 		infoLog:        infoLog,
 		posts:          models.NewPostModel(pool),
-		skills:         models.NewSkillModel(pool),
+		skills:         models.NewSkillLevelModel(pool),
 		sports:         models.NewSportModel(pool),
 		users:          models.NewUserModel(pool),
 		contacts:       models.NewContactModel(pool),
+		timeslots:      models.NewTimeslotModel(pool),
 		verifications:  models.NewVerificationModel(pool),
 		templateCache:  tc,
 		sessionManager: sm,

@@ -1,100 +1,62 @@
 {{define "title"}}Post Details - {{.Data.Post.UserName}}{{end}}
 
 {{define "main"}}
-    <div class="flex flex-wrap">
-        <section class="w-full max-w-xs">
-            <h1 class="text-2xl font-bold mb-4">
-                Post Details
-            </h1>
+    <h1>
+        Post Details
+    </h1>
 
-            <table class="border border-collapse">
-                <tbody>
-                    <tr>
-                        <th class="border p-2 font-normal text-left text-gray-600">
-                            Name
-                        </th>
-                        <td class="border px-4 py-2">
-                            {{.Data.Post.UserName}}
-                        </td>
-                    </tr>
+    <table>
+        <tbody>
+            <tr>
+                <th scope="row">
+                    Name
+                </th>
+                <td>
+                    {{.Data.Post.UserName}}
+                </td>
+            </tr>
 
-                    <tr>
-                        <th class="border p-2 font-normal text-left text-gray-600">
-                            Sport
-                        </th>
-                        <td class="border px-4 py-2 capitalize">
-                            {{.Data.Post.SportName}}
-                        </td>
-                    </tr>
-        
-                    <tr>
-                        <th class="border p-2 font-normal text-left text-gray-600">
-                            Skill
-                        </th>
-                        <td class="border px-4 py-2 capitalize">
-                            {{.Data.Post.SkillLevel}} - {{.Data.Post.SkillLevelDesc}}
-                        </td>
-                    </tr>
-        
-                    <tr>
-                        <th class="border p-2 font-normal text-left text-gray-600">
-                            Created
-                        </th>
-                        <td class="border px-4 py-2">
-                            {{date .Data.Post.CreatedAt}}
-                        </td>
-                    </tr>
+            <tr>
+                <th scope="row">
+                    Sport
+                </th>
+                <td>
+                    {{.Data.Post.Sport}}
+                </td>
+            </tr>
 
-                    {{with .Data.Post.Comment}}
-                        <tr>
-                            <th class="p-2 font-normal text-left text-gray-600" colspan="2">
-                                Comment
-                            </th>
-                        </tr>
-                        <tr>
-                            <td class="pl-2.5 pb-2.5" colspan="2">
-                                <p class="mt-1 text-sm">
-                                    {{.}}
-                                </p>
-                            </td>
-                        </tr>
-                    {{end}}
-                </tbody>
-            </table>
-        </section>
-        
-        <section class="w-full max-w-xs">
-            {{if eq .Data.Post.UserID .Data.SessionUserID}}
-                <h2 class="text-xl mb-6">
-                    Manage Post
-                </h2>
+            <tr>
+                <th scope="row">
+                    Skill
+                </th>
+                <td>
+                    {{.Data.Post.SkillLevel}}
+                </td>
+            </tr>
 
-                <div class="flex gap-4">
-                    <a href="/posts/{{.Data.Post.ID}}/edit">
-                        Edit
-                    </a>
-    
-                    <a class="text-red-600" href="/posts/{{.Data.Post.ID}}/delete">
-                        Delete
-                    </a>
-                </div>
-            {{else}}
-                <form action="/posts/{{.Data.Post.ID}}/connect" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <tr>
+                <th scope="row">
+                    Created
+                </th>
+                <td>
+                    {{date .Data.Post.CreatedAt}}
+                </td>
+            </tr>
 
-                    <div class="flex flex-col gap-4">
-                        <h2 class="text-xl">
-                            Create a Connection
-                        </h2>
-                        
-                        <nav class="flex flex-col gap-4">
-                            Contact information
-                        </nav>
-                    </div>
-                </form>
+            {{with .Data.Post.Comment}}
+                <tr>
+                    <th scope="col" colspan="2">
+                        Comment
+                    </th>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        {{.}}
+                    </td>
+                </tr>
             {{end}}
-        </section>
-    </div>
+        </tbody>
+    </table>
 {{end}}
 
 {{define "scripts"}}{{end}}

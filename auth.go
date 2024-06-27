@@ -4,74 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
-	"runtime/debug"
-	"strconv"
-	"strings"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/micahco/racket-connections/internal/crypto"
 	"github.com/micahco/racket-connections/internal/models"
 	"github.com/micahco/racket-connections/internal/validator"
-	"github.com/micahco/racket-connections/ui"
 )
-
-func refresh(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
-}
-
-func (app *application) serverError(w http.ResponseWriter, err error) {
-	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	app.errorLog.Output(2, trace)
-
-	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-}
-
-func clientError(w http.ResponseWriter, status int) {
-	http.Error(w, http.StatusText(status), status)
-}
-
-func unauthorizedError(w http.ResponseWriter) {
-	http.Error(w, "permission denied", http.StatusUnauthorized)
-}
-
-func validationError(w http.ResponseWriter, v validator.Validator) {
-	http.Error(w, v.Errors(), http.StatusUnprocessableEntity)
-}
-
-func handleNotFound(w http.ResponseWriter, r *http.Request) {
-	clientError(w, http.StatusNotFound)
-}
-
-func (app *application) handleStatic() http.Handler {
-	if app.isProduction {
-		return http.FileServer(http.FS(ui.Files))
-	}
-
-	fs := http.FileServer(http.Dir("./ui/static/"))
-	return http.StripPrefix("/static", fs)
-}
-
-func (app *application) handleFavicon(w http.ResponseWriter, r *http.Request) {
-	if app.isProduction {
-		http.ServeFileFS(w, r, ui.Files, "static/favicon.ico")
-
-		return
-	}
-
-	http.ServeFile(w, r, "./ui/static/favicon.ico")
-}
-
-func (app *application) handleRootGet(w http.ResponseWriter, r *http.Request) {
-	if app.isAuthenticated(r) {
-		http.Redirect(w, r, "/posts/latest", http.StatusSeeOther)
-
-		return
-	}
-
-	app.render(w, r, http.StatusOK, "login.html", nil)
-}
 
 func (app *application) handleAuthLoginGet(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -200,7 +138,7 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	url := fmt.Sprintf("%s/auth/create?token=%s", app.url, token)
+	url := fmt.Sprintf("%s/auth/register?token=%s", app.url, token)
 	html := fmt.Sprintf("<p>Please follow the link below to create your account:</p>"+
 		"<a href=\"%s\">%s</a>", url, url)
 
@@ -227,11 +165,14 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 	refresh(w, r)
 }
 
-type authCreateData struct {
+type authRegisterData struct {
 	HasSessionEmail bool
+	ContactMethods  []*models.ContactMethod
+	Days            []*models.DayOfWeek
+	Times           []*models.TimeOfDay
 }
 
-func (app *application) handleAuthCreateGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthRegisterGet(w http.ResponseWriter, r *http.Request) {
 	queryToken := r.URL.Query().Get("token")
 	if queryToken == "" {
 		unauthorizedError(w)
@@ -241,18 +182,27 @@ func (app *application) handleAuthCreateGet(w http.ResponseWriter, r *http.Reque
 
 	app.sessionManager.Put(r.Context(), verificationTokenSessionKey, queryToken)
 
+	m, _ := app.contacts.Methods()
+	d, _ := app.timeslots.Days()
+	t, _ := app.timeslots.Times()
+
 	exists := app.sessionManager.Exists(r.Context(), verificationEmailSessionKey)
-	data := authCreateData{
+	data := authRegisterData{
 		HasSessionEmail: exists,
+		ContactMethods:  m,
+		Days:            d,
+		Times:           t,
 	}
 
-	app.render(w, r, http.StatusOK, "auth-create.html", data)
+	app.render(w, r, http.StatusOK, "auth-register.html", data)
 }
 
-type authCreateForm struct {
-	name     string
-	email    string
-	password string
+type authRegisterForm struct {
+	name          string
+	email         string
+	password      string
+	contactMethod string
+	contactValue  string
 	validator.Validator
 }
 
@@ -261,7 +211,8 @@ var ExpiredTokenFlash = FlashMessage{
 	Message: "Expired verification token.",
 }
 
-func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Request) {
+func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Request) {
+	// Validate form
 	err := r.ParseForm()
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
@@ -269,10 +220,12 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	form := authCreateForm{
-		name:     r.Form.Get("name"),
-		email:    r.Form.Get("email"),
-		password: r.Form.Get("password"),
+	form := authRegisterForm{
+		name:          r.Form.Get("name"),
+		email:         r.Form.Get("email"),
+		password:      r.Form.Get("password"),
+		contactMethod: r.Form.Get("contact-method"),
+		contactValue:  r.Form.Get("contact-value"),
 	}
 
 	email := app.sessionManager.GetString(r.Context(), verificationEmailSessionKey)
@@ -288,12 +241,26 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 	form.Validate(validator.MinChars(form.password, 8), "invalid password: must be at least 8 characters long")
 	form.Validate(validator.MaxChars(form.password, 72), "invalid password: must be no more than 72 characters long")
 
+	switch form.contactMethod {
+	case "email":
+		// validate
+	case "phone":
+		// validate
+	case "link":
+		// validate
+	default:
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
 	if !form.IsValid() {
 		validationError(w, form.Validator)
 
 		return
 	}
 
+	// Verify token authentication
 	token := app.sessionManager.GetString(r.Context(), verificationTokenSessionKey)
 	if token == "" {
 		unauthorizedError(w)
@@ -323,7 +290,8 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	id, err := app.users.Insert(form.name, email, form.password)
+	// Insert data
+	userID, err := app.users.Insert(form.name, email, form.password)
 	if err != nil {
 		if errors.Is(err, models.ErrDuplicateEmail) {
 			unauthorizedError(w)
@@ -334,15 +302,41 @@ func (app *application) handleAuthCreatePost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	methodID, err := app.contacts.MethodID(form.contactMethod)
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	err = app.contacts.Insert(form.contactValue, userID, methodID)
+	if err != nil {
+		app.serverError(w, err)
+	}
+
+	// Parse timetable and insert data
+	days, _ := app.timeslots.Days()
+	times, _ := app.timeslots.Times()
+	for _, d := range days {
+		for _, t := range times {
+			key := fmt.Sprintf("%s-%s", d.Name, t.Name)
+			if r.Form.Get(key) == "on" {
+				err = app.timeslots.Insert(userID, d.ID, t.ID)
+				if err != nil {
+					app.serverError(w, err)
+				}
+			}
+		}
+	}
+
+	// Login user
 	app.sessionManager.Clear(r.Context())
-	err = app.login(r, id)
+	err = app.login(r, userID)
 	if err != nil {
 		app.serverError(w, err)
 
 		return
 	}
 
-	http.Redirect(w, r, "/profile/contact/new", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) handleAuthResetGet(w http.ResponseWriter, r *http.Request) {
@@ -521,357 +515,4 @@ func (app *application) handleAuthResetUpdatePost(w http.ResponseWriter, r *http
 	app.flash(r, f)
 
 	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
-}
-
-func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "show user profile")
-}
-
-type newContactData struct {
-	ContactMethods []*models.ContactMethod
-	RefererPath    string
-}
-
-func (app *application) handleProfileContactNewGet(w http.ResponseWriter, r *http.Request) {
-	refPath := ""
-
-	ref, err := url.Parse(r.Referer())
-	if err == nil {
-		refPath = ref.Path
-	}
-
-	m, err := app.contacts.AllMethods()
-	if err != nil {
-		app.serverError(w, err)
-	}
-
-	data := newContactData{
-		ContactMethods: m,
-		RefererPath:    refPath,
-	}
-
-	app.render(w, r, http.StatusOK, "profile-contact-new.html", data)
-}
-
-type newContactForm struct {
-	referer string
-	value   string
-	validator.Validator
-}
-
-func (app *application) handleProfileContactNewPost(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
-	if err != nil {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	methodID, err := strconv.Atoi(r.Form.Get("contact-method"))
-	if err != nil {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	form := newContactForm{
-		referer: r.Form.Get("referer"),
-		value:   r.Form.Get("contact-value"),
-	}
-
-	form.Validate(validator.NotBlank(form.value), "invalid value: cannot be blank")
-
-	if methodID == 1 {
-		form.Validate(validator.Matches(form.value, validator.EmailRX), "invalid email: must be a valid email address")
-		form.Validate(validator.MaxChars(form.value, 254), "invalid email: must be no more than 254 characters long")
-	} else {
-		form.Validate(validator.MaxChars(form.value, 100), "invalid value: must be no more than 100 characters long")
-	}
-
-	if !form.IsValid() {
-		validationError(w, form.Validator)
-
-		return
-	}
-
-	suid, err := app.getSessionUserID(r)
-	if err != nil {
-		unauthorizedError(w)
-
-		return
-	}
-
-	err = app.contacts.Insert(suid, methodID, form.value)
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	redirectURL := "/profile"
-
-	if form.referer == "/auth/create" {
-		redirectURL = "/"
-	} else if form.referer == "/posts/new" {
-		redirectURL = form.referer
-	}
-
-	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
-}
-
-func (app *application) handleProfileEditGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "show edit profile form")
-}
-
-func (app *application) handleProfileEditPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "update user profile")
-}
-
-func (app *application) handleProfileDeletePost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "delete user profile")
-}
-
-func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "show all posts")
-}
-
-func (app *application) handlePostsPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "create new post")
-}
-
-type postsLatestData struct {
-	Map    map[int][]*models.PostDetails
-	Sports []*models.Sport
-}
-
-func (app *application) handlePostsLatestGet(w http.ResponseWriter, r *http.Request) {
-	m, err := app.posts.Latest()
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	s, err := app.sports.All()
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	data := postsLatestData{
-		Map:    m,
-		Sports: s,
-	}
-
-	app.render(w, r, http.StatusOK, "posts-latest.html", data)
-}
-
-type postData struct {
-	Post          *models.PostDetails
-	SessionUserID int
-}
-
-func (app *application) handlePostsIdGet(w http.ResponseWriter, r *http.Request) {
-	idParam := chi.URLParam(r, "id")
-	if idParam == "" {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	id, err := strconv.Atoi(idParam)
-	if err != nil {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	p, err := app.posts.GetDetails(id)
-	if err != nil {
-		if errors.Is(err, models.ErrNoRecord) {
-			clientError(w, http.StatusNotFound)
-		} else {
-			app.serverError(w, err)
-		}
-
-		return
-	}
-
-	userID, err := app.getSessionUserID(r)
-	if err != nil {
-		unauthorizedError(w)
-
-		return
-	}
-
-	data := postData{
-		Post:          p,
-		SessionUserID: userID,
-	}
-
-	app.render(w, r, http.StatusOK, "post-details.html", data)
-}
-
-func (app *application) handlePostsIdEditGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "edit post")
-}
-
-func (app *application) handlePostsIdEditPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "edit post")
-}
-
-func (app *application) handlePostsIdDeleteGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "delete post")
-}
-
-func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.Request) {
-	idParam := chi.URLParam(r, "id")
-	if idParam == "" {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	postID, err := strconv.Atoi(idParam)
-	if err != nil {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	suid, err := app.getSessionUserID(r)
-	if err != nil {
-		unauthorizedError(w)
-
-		return
-	}
-
-	userID, err := app.posts.GetUserID(postID)
-	if err != nil || suid != userID {
-		unauthorizedError(w)
-
-		return
-	}
-
-	app.posts.Delete(postID)
-
-	f := FlashMessage{
-		Type:    FlashSuccess,
-		Message: "Successfully deleted post",
-	}
-	app.flash(r, f)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-type newPostData struct {
-	Sports     []*models.Sport
-	SportQuery string
-	Skills     []*models.SkillLevel
-}
-
-func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request) {
-	sports, err := app.sports.All()
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	skills, err := app.skills.All()
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	q := r.URL.Query().Get("sport")
-
-	data := newPostData{
-		Sports:     sports,
-		SportQuery: strings.ToLower(q),
-		Skills:     skills,
-	}
-
-	app.render(w, r, http.StatusOK, "posts-new.html", data)
-}
-
-type newPostForm struct {
-	sport      int
-	skillLevel int
-	comment    string
-	validator.Validator
-}
-
-func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Request) {
-	userID, err := app.getSessionUserID(r)
-	if err != nil {
-		unauthorizedError(w)
-
-		return
-	}
-
-	err = r.ParseForm()
-	if err != nil {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	sportID, err := strconv.Atoi(r.Form.Get("sport"))
-	if err != nil {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	// Check if user already has post with sport
-	postID, err := app.posts.GetID(userID, sportID)
-	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		app.serverError(w, err)
-
-		return
-	}
-
-	if postID != 0 {
-		url := fmt.Sprintf("/posts/%d", postID)
-		http.Redirect(w, r, url, http.StatusConflict)
-
-		return
-	}
-
-	skill, err := strconv.Atoi(r.Form.Get("skill-level"))
-	if err != nil {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	form := newPostForm{
-		sport:      sportID,
-		skillLevel: skill,
-		comment:    r.Form.Get("comment"),
-	}
-
-	form.Validate(validator.MaxChars(form.comment, 254), "invalid comment: must be no more than 254 characters long")
-	form.Validate(validator.PermittedInt(form.sport, 1, 2, 3, 4, 5, 6), "invalid sport")
-	form.Validate(validator.PermittedInt(form.skillLevel, 1, 2, 3, 4, 5), "invalid skill level")
-
-	if !form.IsValid() {
-		validationError(w, form.Validator)
-
-		return
-	}
-
-	postID, err = app.posts.Insert(form.comment, form.skillLevel, userID, form.sport)
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	url := fmt.Sprintf("/posts/%d", postID)
-
-	http.Redirect(w, r, url, http.StatusSeeOther)
 }

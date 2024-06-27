@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/micahco/racket-connections/ui"
 )
 
 func (app *application) routes() http.Handler {
@@ -23,7 +24,7 @@ func (app *application) routes() http.Handler {
 		r.Use(app.noSurf)
 		r.Use(app.authenticate)
 
-		r.Get("/", app.handleRootGet)
+		r.Get("/", app.handleRoot)
 
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/login", app.handleAuthLoginGet)
@@ -34,8 +35,8 @@ func (app *application) routes() http.Handler {
 			r.Get("/signup", app.handleAuthSignupGet)
 			r.Post("/signup", app.handleAuthSignupPost)
 
-			r.Get("/create", app.handleAuthCreateGet)
-			r.Post("/create", app.handleAuthCreatePost)
+			r.Get("/register", app.handleAuthRegisterGet)
+			r.Post("/register", app.handleAuthRegisterPost)
 
 			r.Route("/reset", func(r chi.Router) {
 				r.Get("/", app.handleAuthResetGet)
@@ -51,23 +52,14 @@ func (app *application) routes() http.Handler {
 
 			r.Get("/", app.handleProfileGet)
 
-			r.Get("/edit", app.handleProfileEditGet)
-			r.Post("/edit", app.handleProfileEditPost)
+			r.Get("/edit", nil)
+			r.Post("/edit", nil)
 
-			r.Post("/delete", app.handleProfileDeletePost)
-
-			r.Route("/contact", func(r chi.Router) {
-				r.Get("/new", app.handleProfileContactNewGet)
-				r.Post("/new", app.handleProfileContactNewPost)
-
-				r.Get("/list", nil)
-
-				r.Post("/delete", nil)
-			})
+			r.Post("/delete", nil)
 		})
 
 		r.Route("/posts", func(r chi.Router) {
-			r.Use(app.requireAuthentication)
+			//r.Use(app.requireAuthentication)
 
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
@@ -90,4 +82,37 @@ func (app *application) routes() http.Handler {
 	})
 
 	return r
+}
+
+func refresh(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+}
+
+func (app *application) handleStatic() http.Handler {
+	if app.isProduction {
+		return http.FileServer(http.FS(ui.Files))
+	}
+
+	fs := http.FileServer(http.Dir("./ui/static/"))
+	return http.StripPrefix("/static", fs)
+}
+
+func (app *application) handleFavicon(w http.ResponseWriter, r *http.Request) {
+	if app.isProduction {
+		http.ServeFileFS(w, r, ui.Files, "static/favicon.ico")
+
+		return
+	}
+
+	http.ServeFile(w, r, "./ui/static/favicon.ico")
+}
+
+func (app *application) handleRoot(w http.ResponseWriter, r *http.Request) {
+	if app.isAuthenticated(r) {
+		http.Redirect(w, r, "/posts/latest", http.StatusSeeOther)
+
+		return
+	}
+
+	app.render(w, r, http.StatusOK, "login.html", nil)
 }
