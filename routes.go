@@ -64,8 +64,6 @@ func (app *application) routes() http.Handler {
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
 
-			r.Get("/latest", app.handlePostsLatestGet)
-
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/*", app.handlePostsIdGet)
 
@@ -109,7 +107,7 @@ func (app *application) handleFavicon(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) handleRoot(w http.ResponseWriter, r *http.Request) {
 	if app.isAuthenticated(r) {
-		http.Redirect(w, r, "/posts/latest", http.StatusSeeOther)
+		http.Redirect(w, r, "/posts", http.StatusSeeOther)
 
 		return
 	}

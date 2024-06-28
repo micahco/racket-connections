@@ -2,13 +2,13 @@
 
 {{define "main"}}
     <h1>
-        New Password
+        Update Password
     </h1>
 
     <form action="/auth/reset/update" method="POST">
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
 
-        {{if not .HasSessionEmail}}
+        {{if not .Data.HasSessionEmail}}
             <div>
                 <label for="email">Email</label>
                 <input type="email" name="email" autocomplete="username" required>
@@ -16,7 +16,7 @@
         {{end}}
 
         <div>
-            <label for="password">Password</label>
+            <label for="password">New Password</label>
             <input type="password" name="password" autocomplete="current-password" required>
         </div>
 

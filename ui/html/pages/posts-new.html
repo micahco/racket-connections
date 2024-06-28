@@ -31,7 +31,7 @@
 
             <select id="skill-level" name="skill-level">
                 {{range .Data.Skills}}
-                    <option value="{{.Value}}">{{.Value}} - {{.Desc}}</option>
+                    <option value="{{.ID}}">{{.Name}}</option>
                 {{end}}
             </select>
         </div>

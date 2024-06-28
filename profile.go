@@ -10,7 +10,7 @@ type profileData struct {
 	Name     string
 	Email    string
 	Contacts []*models.UserContact
-	Times    []*models.Timeslot
+	Times    []*models.TimeslotUser
 }
 
 func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +35,7 @@ func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	t, err := app.timeslots.All(userID)
+	t, err := app.timeslots.User(userID)
 	if err != nil {
 		app.serverError(w, err)
 

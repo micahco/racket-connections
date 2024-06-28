@@ -15,15 +15,15 @@ import (
 
 type postsQuery struct {
 	Sport    []string
-	Timeslot []string
+	Timeslot []models.TimeslotAbbrev
 }
 
 type postsData struct {
-	Query    postsQuery
-	Days     []*models.DayOfWeek
-	Times    []*models.TimeOfDay
-	Sports   []*models.Sport
-	PostsMap map[int][]models.PostCard
+	Query  postsQuery
+	Days   []*models.DayOfWeek
+	Times  []*models.TimeOfDay
+	Sports []*models.Sport
+	Posts  []*models.PostCard
 }
 
 func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
@@ -34,28 +34,26 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 
 	q := postsQuery{
 		Sport:    sportsQuery,
-		Timeslot: make([]string, 0),
+		Timeslot: make([]models.TimeslotAbbrev, 0),
 	}
 
 	days, _ := app.timeslots.Days()
-	times, err := app.timeslots.Times()
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
+	times, _ := app.timeslots.Times()
 	s, _ := app.sports.All()
 
 	for _, d := range days {
 		for _, t := range times {
 			key := fmt.Sprintf("%s-%s", d.Abbrev, t.Abbrev)
 			if r.URL.Query().Get(key) == "on" {
-				q.Timeslot = append(q.Timeslot, key)
+				q.Timeslot = append(q.Timeslot, models.TimeslotAbbrev{
+					Day:  d.Abbrev,
+					Time: t.Abbrev,
+				})
 			}
 		}
 	}
 
-	p, err := app.posts.All(sportsQuery)
+	p, err := app.posts.All(q.Sport, q.Timeslot)
 	if err != nil {
 		app.serverError(w, err)
 
@@ -63,11 +61,11 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := postsData{
-		Query:    q,
-		Days:     days,
-		Times:    times,
-		PostsMap: p,
-		Sports:   s,
+		Query:  q,
+		Days:   days,
+		Times:  times,
+		Sports: s,
+		Posts:  p,
 	}
 
 	app.render(w, r, http.StatusOK, "posts.html", data)
@@ -75,34 +73,6 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) handlePostsPost(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "create new post")
-}
-
-type latestPostsData struct {
-	PostsMap map[int][]models.PostCard
-	Sports   []*models.Sport
-}
-
-func (app *application) handlePostsLatestGet(w http.ResponseWriter, r *http.Request) {
-	p, err := app.posts.Latest(3)
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	s, err := app.sports.All()
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	data := latestPostsData{
-		PostsMap: p,
-		Sports:   s,
-	}
-
-	app.render(w, r, http.StatusOK, "posts-latest.html", data)
 }
 
 type postData struct {
@@ -306,6 +276,8 @@ func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Reques
 	}
 
 	if postID != 0 {
+		// flash cant create duplicate post in sport
+
 		url := fmt.Sprintf("/posts/%d", postID)
 		http.Redirect(w, r, url, http.StatusConflict)
 
@@ -335,7 +307,7 @@ func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	postID, err = app.posts.Insert(form.comment, form.skillLevel, userID, form.sport)
+	postID, err = app.posts.Insert(userID, form.sport, form.skillLevel, form.comment)
 	if err != nil {
 		app.serverError(w, err)
 

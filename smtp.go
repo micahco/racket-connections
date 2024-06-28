@@ -8,7 +8,7 @@ import (
 
 func (app *application) sendMail(to, subject, html string) error {
 	if !app.isProduction {
-		app.infoLog.Println("sendMail:", html)
+		fmt.Println("SMTP\tsendMail:", html)
 
 		return nil
 	}

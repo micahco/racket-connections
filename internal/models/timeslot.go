@@ -75,19 +75,19 @@ func (m *TimeslotModel) Insert(userID, dayID, timeID int) error {
 	return err
 }
 
-type Timeslot struct {
+type TimeslotUser struct {
 	Day  string
 	Time string
 }
 
-func scanTimeslot(row pgx.CollectableRow) (*Timeslot, error) {
-	var d Timeslot
+func scanTimeslotUser(row pgx.CollectableRow) (*TimeslotUser, error) {
+	var d TimeslotUser
 	err := row.Scan(&d.Day, &d.Time)
 
 	return &d, err
 }
 
-func (m *TimeslotModel) All(userID int) ([]*Timeslot, error) {
+func (m *TimeslotModel) User(userID int) ([]*TimeslotUser, error) {
 	sql := `SELECT
 			d.name_,
 			t.name_
@@ -103,7 +103,7 @@ func (m *TimeslotModel) All(userID int) ([]*Timeslot, error) {
 		return nil, err
 	}
 
-	t, err := pgx.CollectRows(rows, scanTimeslot)
+	t, err := pgx.CollectRows(rows, scanTimeslotUser)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -113,4 +113,9 @@ func (m *TimeslotModel) All(userID int) ([]*Timeslot, error) {
 	}
 
 	return t, nil
+}
+
+type TimeslotAbbrev struct {
+	Day  string
+	Time string
 }

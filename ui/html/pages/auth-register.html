@@ -28,30 +28,52 @@
             Contact Information
         </h2>
 
-        <p>
-            This is how other users will reach out to you to make connections. If adding an email address, we recommend that you use a personal email address instead of your school email.
-        </p>
-
         <div>
             <label for="name">Full Name</label>
             <input type="text" name="name" autocomplete="name" required>
         </div>
+
+        <p>
+            This is how other users will reach out to you to make connections. You can click on the dropdown to select a different method.
+        </p>
         
         <select id="contact-method" name="contact-method">
             {{range .Data.ContactMethods}}
                 <option value="{{.Name}}">{{.Name}}</option>
             {{end}}
         </select>
-        <input type="text" id="contact-value" name="contact-value">
+        <input type="text" id="contact-value" name="contact-value" required>
+
+        <dl>
+            <dt>Email</dt>
+            <dd>
+                We recommend you use a personal address and not your school email.
+            </dd>
+
+            <dt>Phone</dt>
+            <dd>
+                Who dis?
+            </dd>
+
+            <dt>Other</dt>
+            <dd>
+                Here you can link to your Discord or Facebook.
+            </dd>
+        </dl>
 
         <h2>
             Availability
         </h2>
 
+        <p>
+            <em>Optional.</em> Other users will be able to see your posts when filtering by availability.
+        </p>
+
         <figure>
             <figcaption>
 
             </figcaption>
+
             <table>
                 <thead>
                     <tr>
@@ -60,7 +82,9 @@
                         </th>
                         {{range .Data.Times}}
                             <th scope="col">
-                                {{.Name}}
+                                <button type="button">
+                                    {{.Name}}
+                                </button>
                             </th>
                         {{end}}
                     </tr>
@@ -69,17 +93,20 @@
                     {{range $day := .Data.Days}}
                         <tr>
                             <th scope="row">
-                                {{$day.Abbrev}}
+                                <button type="button">
+                                    {{$day.Abbrev}}
+                                </button>
                             </th>
                             {{range $time := $.Data.Times}}
                                 <td>
-                                    <input type="checkbox" name="{{$day.Name}}-{{$time.Name}}">
+                                    <input type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}">
                                 </td>
                             {{end}}
                         </tr>
                     {{end}}
                 </tbody>
             </table>
+
             <footer>
                 <dl>
                     <dt>Morning</dt>
@@ -102,5 +129,6 @@
 
 {{define "scripts"}}
 <script src="/static/scripts/register.js"></script>
+<script src="/static/scripts/timetable.js"></script>
 {{end}}
     

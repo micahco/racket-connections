@@ -28,15 +28,16 @@
                     Availability
                 </legend>
 
-                <table>
+                <table id="timetable">
                     <thead>
                         <tr>
                             <th scope="col">
-                                Day
                             </th>
                             {{range .Data.Times}}
                                 <th scope="col">
-                                    {{.Name}}
+                                    <button type="button">
+                                        {{.Name}}
+                                    </button>
                                 </th>
                             {{end}}
                         </tr>
@@ -44,7 +45,7 @@
                     <tbody>
                         {{range $day := .Data.Days}}
                             <tr>
-                                <th class="day-header" scope="row">
+                                <th scope="row">
                                     <button type="button">
                                         {{$day.Abbrev}}
                                     </button>
@@ -53,7 +54,7 @@
                                     <td>
                                         <input type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}"
                                             {{range $.Data.Query.Timeslot}}
-                                                {{if eq . (printf "%s-%s" $day.Abbrev $time.Abbrev)}}
+                                                {{if and (eq .Day $day.Abbrev) (eq .Time $time.Abbrev)}}
                                                     checked
                                                 {{end}}
                                             {{end}}
@@ -66,11 +67,13 @@
                 </table>
             </fieldset>
 
-            <a href="?">Clear</a>
+            <a href="?">
+                Clear All
+            </a>
 
-            <button type="reset">Reset</button>
-
-            <button type="submit">Apply</button>
+            <button type="submit">
+                Apply
+            </button>
         </form>
     </article>
 
@@ -79,36 +82,37 @@
             Posts
         </h1>
 
-        {{range $sport := .Data.Sports}}
-        {{if $posts := index $.Data.PostsMap $sport.ID}}
-            <section>
-                <h2>
-                    {{$sport.Name}}
-                </h2>
+        <a href="/posts/new">New post</a>
 
-                <ul>
-                    {{range $posts}}
-                        <li>
-                            <a href="/posts/{{.ID}}/{{queryEscape .UserName}}">
-                                {{.UserName}}
-                            </a>
-                            
-                            <span>
-                                {{.SkillLevel}}
-                            </span>
-                            
-                            <span>
-                                {{since .CreatedAt}}
-                            </span>
-                        </li>
-                    {{end}}
-                </ul>
-            </section>
-        {{end}}
-    {{end}}
+
+        <ul>
+            {{range .Data.Posts}}
+                <li>
+                    <span>
+                        {{.Sport}}
+                    </span>
+
+                    <span>
+                        {{.UserName}}
+                    </span>
+
+                    <span>
+                        {{.SkillLevel}}
+                    </span>
+                    
+                    <span>
+                        {{since .CreatedAt}}
+                    </span>
+
+                    <a href="/posts/{{.ID}}/{{queryEscape .UserName}}">
+                        >>
+                    </a>
+                </li>
+            {{end}}
+        </ul>
     </section>
 {{end}}
 
 {{define "scripts"}}
-<script src="/static/scripts/posts.js"></script>
+<script src="/static/scripts/timetable.js"></script>
 {{end}}

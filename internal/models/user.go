@@ -116,7 +116,7 @@ func (m *UserModel) UpdatePassword(email, password string) error {
 		return err
 	}
 
-	sql := "UPDATE users SET password_hash_ = $1 WHERE email_ = $2;"
+	sql := "UPDATE user_ SET password_hash_ = $1 WHERE email_ = $2;"
 
 	_, err = m.pool.Exec(context.Background(), sql, hash, email)
 

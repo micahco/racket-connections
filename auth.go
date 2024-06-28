@@ -72,6 +72,12 @@ func (app *application) handleAuthLogoutPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	f := FlashMessage{
+		Type:    FlashSuccess,
+		Message: "Successfully logged out.",
+	}
+	app.flash(r, f)
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -187,6 +193,7 @@ func (app *application) handleAuthRegisterGet(w http.ResponseWriter, r *http.Req
 	t, _ := app.timeslots.Times()
 
 	exists := app.sessionManager.Exists(r.Context(), verificationEmailSessionKey)
+
 	data := authRegisterData{
 		HasSessionEmail: exists,
 		ContactMethods:  m,
@@ -317,7 +324,7 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 	times, _ := app.timeslots.Times()
 	for _, d := range days {
 		for _, t := range times {
-			key := fmt.Sprintf("%s-%s", d.Name, t.Name)
+			key := fmt.Sprintf("%s-%s", d.Abbrev, t.Abbrev)
 			if r.Form.Get(key) == "on" {
 				err = app.timeslots.Insert(userID, d.ID, t.ID)
 				if err != nil {
@@ -335,6 +342,12 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 
 		return
 	}
+
+	f := FlashMessage{
+		Type:    FlashSuccess,
+		Message: "Successfully created account. Welcome!",
+	}
+	app.flash(r, f)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -420,6 +433,10 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 	refresh(w, r)
 }
 
+type resetUpdateData struct {
+	HasSessionEmail bool
+}
+
 func (app *application) handleAuthResetUpdateGet(w http.ResponseWriter, r *http.Request) {
 	queryToken := r.URL.Query().Get("token")
 	if queryToken == "" {
@@ -430,7 +447,13 @@ func (app *application) handleAuthResetUpdateGet(w http.ResponseWriter, r *http.
 
 	app.sessionManager.Put(r.Context(), resetTokenSessionKey, queryToken)
 
-	app.render(w, r, http.StatusOK, "auth-reset.html", nil)
+	exists := app.sessionManager.Exists(r.Context(), resetEmailSessionKey)
+
+	data := resetUpdateData{
+		HasSessionEmail: exists,
+	}
+
+	app.render(w, r, http.StatusOK, "auth-reset-update.html", data)
 }
 
 type authResetUpdateForm struct {

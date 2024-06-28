@@ -34,6 +34,11 @@ CREATE TABLE IF NOT EXISTS time_of_day_ (
     abbrev_ VARCHAR(3) UNIQUE
 );
 
+CREATE TABLE IF NOT EXISTS contact_method_ (
+    id_ SERIAL PRIMARY KEY,
+    name_ TEXT UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS user_ (
     id_ BIGSERIAL PRIMARY KEY,
     name_ TEXT NOT NULL,
@@ -42,9 +47,14 @@ CREATE TABLE IF NOT EXISTS user_ (
     created_at_ TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS contact_method_ (
-    id_ SERIAL PRIMARY KEY,
-    name_ TEXT UNIQUE
+CREATE TABLE IF NOT EXISTS timeslot_ (
+    user_id_ INT NOT NULL,
+    day_id_ INT NOT NULL,
+    time_id_ INT NOT NULL,
+    PRIMARY KEY (user_id_, day_id_, time_id_),
+    FOREIGN KEY (user_id_) REFERENCES user_(id_),
+    FOREIGN KEY (day_id_) REFERENCES day_of_week_(id_),
+    FOREIGN KEY (time_id_) REFERENCES time_of_day_(id_)
 );
 
 CREATE TABLE IF NOT EXISTS contact_ (
@@ -66,16 +76,6 @@ CREATE TABLE IF NOT EXISTS post_ (
     FOREIGN KEY (user_id_) REFERENCES user_(id_) ON DELETE CASCADE,
     FOREIGN KEY (sport_id_) REFERENCES sport_(id_) ON DELETE CASCADE,
     FOREIGN KEY (skill_level_id_) REFERENCES skill_level_(id_) ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS timeslot_ (
-    user_id_ INT NOT NULL,
-    day_id_ INT NOT NULL,
-    time_id_ INT NOT NULL,
-    PRIMARY KEY (user_id_, day_id_, time_id_),
-    FOREIGN KEY (user_id_) REFERENCES user_(id_),
-    FOREIGN KEY (day_id_) REFERENCES day_of_week_(id_),
-    FOREIGN KEY (time_id_) REFERENCES time_of_day_(id_)
 );
 
 CREATE TABLE IF NOT EXISTS verification_ (
@@ -110,7 +110,7 @@ INSERT INTO contact_method_ (name_)
 VALUES 
     ('email'),
     ('phone'),
-    ('link')
+    ('other')
 ON CONFLICT (name_) DO NOTHING;
 
 INSERT INTO sport_ (name_) 
