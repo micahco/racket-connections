@@ -91,7 +91,7 @@ func scanPostCard(row pgx.CollectableRow) (*PostCard, error) {
 	return &p, err
 }
 
-func (m *PostModel) All(sports []string, timeslots []TimeslotAbbrev) ([]*PostCard, error) {
+func (m *PostModel) Fetch(sports []string, timeslots []Timeslot, limit int, offset int) ([]*PostCard, error) {
 	sql := `SELECT DISTINCT
 				post_.id_,
 				post_.created_at_,
@@ -106,16 +106,19 @@ func (m *PostModel) All(sports []string, timeslots []TimeslotAbbrev) ([]*PostCar
 			INNER JOIN skill_level_
 				ON skill_level_.id_ = post_.skill_level_id_`
 
+	if len(timeslots) != 0 {
+		sql += `
+			INNER JOIN timeslot_
+				ON timeslot_.user_id_ = user_.id_
+			INNER JOIN day_of_week_
+				ON day_of_week_.id_ = timeslot_.day_id_
+			INNER JOIN time_of_day_
+				ON time_of_day_.id_ = timeslot_.time_id_`
+	}
+
 	var args []any
 	if len(sports) != 0 || len(timeslots) != 0 {
-		sql += `
-				INNER JOIN timeslot_
-					ON timeslot_.user_id_ = user_.id_
-				INNER JOIN day_of_week_
-					ON day_of_week_.id_ = timeslot_.day_id_
-				INNER JOIN time_of_day_
-					ON time_of_day_.id_ = timeslot_.time_id_
-				WHERE `
+		sql += "\nWHERE\n"
 
 		if len(sports) != 0 {
 			sql += "sport_.name_ = ANY ($1)"
@@ -133,21 +136,18 @@ func (m *PostModel) All(sports []string, timeslots []TimeslotAbbrev) ([]*PostCar
 
 				idx := len(args)
 				sql += fmt.Sprintf(`day_of_week_.abbrev_ = $%d AND time_of_day_.abbrev_ = $%d`, idx+1, idx+2)
-				args = append(args, t.Day, t.Time)
+				args = append(args, t.Day.Abbrev, t.Time.Abbrev)
 			}
 		}
 	}
 
-	sql += "\nORDER BY post_.id_ DESC;"
+	sql += "\nORDER BY post_.id_ DESC\n"
 
-	var rows pgx.Rows
-	var err error
+	idx := len(args)
+	sql += fmt.Sprintf("LIMIT $%d OFFSET $%d;", idx+1, idx+2)
+	args = append(args, limit, offset)
 
-	if len(args) != 0 {
-		rows, err = m.pool.Query(context.Background(), sql, args)
-	} else {
-		rows, err = m.pool.Query(context.Background(), sql)
-	}
+	rows, err := m.pool.Query(context.Background(), sql, args...)
 
 	if err != nil {
 		return nil, err

@@ -1,26 +1,34 @@
 {{define "title"}}Reset Password{{end}}
 
 {{define "main"}}
-    <h1>
-        Reset Password
-    </h1>
+    {{template "header" .}}
 
-    <p>
-        Enter the email address associated with your account. A link to reset your password will be sent to your login email.
-    </p>
+    <article>
+        <h1>
+            Reset Password
+        </h1>
     
-    <form action="/auth/reset" method="POST">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        <p>
+            Enter the email address associated with your account. A link to reset your password will be sent to your login email.
+        </p>
+        
+        <section>
+            <form action="/auth/reset" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" name="email" autocomplete="username" required>
+                </div>
+        
+                <button>
+                    Reset
+                </button>
+            </form>
+        </section>
+    </article>
 
-        <div>
-            <label for="email">Email</label>
-            <input type="email" name="email" autocomplete="username" required>
-        </div>
-
-        <button>
-            Reset
-        </button>
-    </form>
+    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}{{end}}

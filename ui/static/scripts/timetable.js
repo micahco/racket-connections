@@ -24,10 +24,12 @@ const rowNodes = (th) => {
     return nodes
 }
 
+const table = document.getElementById("timetable")
+
 const colNodes = (col) => {
     const nodes = []
 
-    const rows = document.querySelector("tbody").getElementsByTagName("tr")
+    const rows = table.querySelector("tbody").getElementsByTagName("tr")
     for (const row of rows) {
         const td = row.getElementsByTagName("td")[col]
         nodes.push(td)
@@ -36,15 +38,15 @@ const colNodes = (col) => {
     return nodes
 }
 
-for (const th of document.querySelectorAll("th[scope='row']")) {
+for (const th of table.querySelectorAll("th[scope='row']")) {
     th.querySelector("button").addEventListener("click", e => {
         toggleChecked(rowNodes(th))
     })
 }
 
-const colThs = document.querySelectorAll("th[scope='col']")
-for (let i = 1; i < colThs.length; i++) {
+const colThs = table.querySelectorAll("th[scope='col']")
+for (let i = 0; i < colThs.length; i++) {
     colThs[i].querySelector("button").addEventListener("click", e => {
-        toggleChecked(colNodes(i - 1))
+        toggleChecked(colNodes(i))
     })
 }

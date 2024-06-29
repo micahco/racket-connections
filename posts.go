@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"net/url"
 	"strconv"
 	"strings"
 
@@ -13,20 +12,31 @@ import (
 	"github.com/micahco/racket-connections/internal/validator"
 )
 
+const (
+	PAGE_SIZE = 12
+)
+
 type postsQuery struct {
 	Sport    []string
-	Timeslot []models.TimeslotAbbrev
+	Timeslot []models.Timeslot
 }
 
 type postsData struct {
-	Query  postsQuery
-	Days   []*models.DayOfWeek
-	Times  []*models.TimeOfDay
-	Sports []*models.Sport
-	Posts  []*models.PostCard
+	Query    postsQuery
+	Days     []*models.DayOfWeek
+	Times    []*models.TimeOfDay
+	Sports   []*models.Sport
+	Posts    []*models.PostCard
+	NextPage string
+	PrevPage string
 }
 
 func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	if page < 1 {
+		page = 1
+	}
+
 	sportsQuery := r.URL.Query()["sport"]
 	for i := 0; i < len(sportsQuery); i++ {
 		sportsQuery[i] = strings.ToLower(sportsQuery[i])
@@ -34,7 +44,7 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 
 	q := postsQuery{
 		Sport:    sportsQuery,
-		Timeslot: make([]models.TimeslotAbbrev, 0),
+		Timeslot: make([]models.Timeslot, 0),
 	}
 
 	days, _ := app.timeslots.Days()
@@ -45,27 +55,46 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 		for _, t := range times {
 			key := fmt.Sprintf("%s-%s", d.Abbrev, t.Abbrev)
 			if r.URL.Query().Get(key) == "on" {
-				q.Timeslot = append(q.Timeslot, models.TimeslotAbbrev{
-					Day:  d.Abbrev,
-					Time: t.Abbrev,
+				q.Timeslot = append(q.Timeslot, models.Timeslot{
+					Day:  d,
+					Time: t,
 				})
 			}
 		}
 	}
 
-	p, err := app.posts.All(q.Sport, q.Timeslot)
+	limit := PAGE_SIZE + 1
+	offset := (page - 1) * PAGE_SIZE
+	p, err := app.posts.Fetch(q.Sport, q.Timeslot, limit, offset)
 	if err != nil {
 		app.serverError(w, err)
 
 		return
 	}
 
+	var nextPage string
+	if len(p) > PAGE_SIZE {
+		p = p[:PAGE_SIZE]
+		q := r.URL.Query()
+		q.Set("page", strconv.Itoa(page+1))
+		nextPage = fmt.Sprintf("/posts?%s", q.Encode())
+	}
+
+	var prevPage string
+	if page > 1 {
+		q := r.URL.Query()
+		q.Set("page", strconv.Itoa(page-1))
+		prevPage = fmt.Sprintf("/posts?%s", q.Encode())
+	}
+
 	data := postsData{
-		Query:  q,
-		Days:   days,
-		Times:  times,
-		Sports: s,
-		Posts:  p,
+		Query:    q,
+		Days:     days,
+		Times:    times,
+		Sports:   s,
+		Posts:    p,
+		NextPage: nextPage,
+		PrevPage: prevPage,
 	}
 
 	app.render(w, r, http.StatusOK, "posts.html", data)
@@ -76,9 +105,11 @@ func (app *application) handlePostsPost(w http.ResponseWriter, r *http.Request) 
 }
 
 type postData struct {
-	Post          *models.PostDetails
-	Contacts      []*models.UserContact
-	SessionUserID int
+	Post      *models.PostDetails
+	Contacts  []*models.UserContact
+	Days      []*models.DayOfWeek
+	Times     []*models.TimeOfDay
+	Timeslots []*models.Timeslot
 }
 
 func (app *application) handlePostsIdGet(w http.ResponseWriter, r *http.Request) {
@@ -114,17 +145,22 @@ func (app *application) handlePostsIdGet(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	suid, err := app.getSessionUserID(r)
+	timeslots, err := app.timeslots.User(p.UserID)
 	if err != nil {
-		unauthorizedError(w)
+		app.serverError(w, err)
 
 		return
 	}
 
+	d, _ := app.timeslots.Days()
+	t, _ := app.timeslots.Times()
+
 	data := postData{
-		Post:          p,
-		Contacts:      c,
-		SessionUserID: suid,
+		Post:      p,
+		Contacts:  c,
+		Days:      d,
+		Times:     t,
+		Timeslots: timeslots,
 	}
 
 	app.render(w, r, http.StatusOK, "post-details.html", data)
@@ -189,30 +225,6 @@ type newPostData struct {
 }
 
 func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request) {
-	// Check if user has any contact information
-	suid, err := app.getSessionUserID(r)
-	if err != nil {
-		unauthorizedError(w)
-
-		return
-	}
-
-	exists, err := app.contacts.Exists(suid)
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	if !exists {
-		u, _ := url.Parse("/profile/contact/new")
-		q := u.Query()
-		q.Add("redirect", "/posts/new")
-		u.RawQuery = q.Encode()
-
-		http.Redirect(w, r, u.String(), http.StatusSeeOther)
-	}
-
 	sports, err := app.sports.All()
 	if err != nil {
 		app.serverError(w, err)
@@ -276,10 +288,14 @@ func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Reques
 	}
 
 	if postID != 0 {
-		// flash cant create duplicate post in sport
+		f := FlashMessage{
+			Type:    FlashInfo,
+			Message: "Already have post for sport.",
+		}
+		app.flash(r, f)
 
 		url := fmt.Sprintf("/posts/%d", postID)
-		http.Redirect(w, r, url, http.StatusConflict)
+		http.Redirect(w, r, url, http.StatusSeeOther)
 
 		return
 	}

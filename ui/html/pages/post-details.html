@@ -1,60 +1,106 @@
 {{define "title"}}Post Details - {{.Data.Post.UserName}}{{end}}
 
 {{define "main"}}
-    <h1>
-        Post Details
-    </h1>
+    {{template "header" .}}
 
-    <table>
-        <tbody>
-            <tr>
-                <th scope="row">
-                    Name
-                </th>
-                <td>
-                    {{.Data.Post.UserName}}
-                </td>
-            </tr>
+    <article>
+        <h1>
+            Post Details
+        </h1>
+    
+        <section>
+            <table>
+                <tbody>
+                    <tr>
+                        <th scope="row">
+                            Name
+                        </th>
+                        <td>
+                            {{.Data.Post.UserName}}
+                        </td>
+                    </tr>
+        
+                    <tr>
+                        <th scope="row">
+                            Sport
+                        </th>
+                        <td>
+                            {{.Data.Post.Sport}}
+                        </td>
+                    </tr>
+        
+                    <tr>
+                        <th scope="row">
+                            Skill
+                        </th>
+                        <td>
+                            {{.Data.Post.SkillLevel}}
+                        </td>
+                    </tr>
+        
+                    <tr>
+                        <th scope="row">
+                            Created
+                        </th>
+                        <td>
+                            {{humanDate .Data.Post.CreatedAt}}
+                        </td>
+                    </tr>
+        
+                    {{with .Data.Post.Comment}}
+                        <tr>
+                            <th scope="row">
+                                Comment
+                            </th>
+                            <td>
+                                {{.}}
+                            </td>
+                        </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </section>
+    
+        <section>
+            <h2>
+                Availability
+            </h2>
+            
+            <table id="timetable">
+                <thead>
+                    <tr>
+                        <th scope="col">
+                        </th>
+                        {{range .Data.Times}}
+                            <th scope="col">
+                                {{.Name}}
+                            </th>
+                        {{end}}
+                    </tr>
+                </thead>
+                <tbody>
+                    {{range $day := .Data.Days}}
+                        <tr>
+                            <th scope="row">
+                                {{$day.Abbrev}}
+                            </th>
+                            {{range $time := $.Data.Times}}
+                                <td>
+                                    {{range $timeslot := $.Data.Timeslots}}
+                                        {{if and (eq $timeslot.Day.ID $day.ID) (eq $timeslot.Time.ID $time.ID)}}
+                                            a
+                                        {{end}}
+                                    {{end}}
+                                </td>
+                            {{end}}
+                        </tr>
+                    {{end}}
+                </tbody>
+            </table>
+        </section>
+    </article>
 
-            <tr>
-                <th scope="row">
-                    Sport
-                </th>
-                <td>
-                    {{.Data.Post.Sport}}
-                </td>
-            </tr>
-
-            <tr>
-                <th scope="row">
-                    Skill
-                </th>
-                <td>
-                    {{.Data.Post.SkillLevel}}
-                </td>
-            </tr>
-
-            <tr>
-                <th scope="row">
-                    Created
-                </th>
-                <td>
-                    {{date .Data.Post.CreatedAt}}
-                </td>
-            </tr>
-
-            {{with .Data.Post.Comment}}
-                <tr>
-                    <th scope="row">
-                        Comment
-                    </th>
-                    <td>
-                        {{.}}
-                    </td>
-                </tr>
-            {{end}}
-        </tbody>
-    </table>
+    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}{{end}}

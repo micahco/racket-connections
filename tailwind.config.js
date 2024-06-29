@@ -21,7 +21,11 @@ module.exports = {
       "beaver-orange": "#D73F09",
       "electric-beav": "#F7A162",
     },
-    extend: {},
+    extend: {
+      minWidth: {
+        '112': '28rem',
+      }
+    },
   },
   plugins: [],
 }

@@ -1,116 +1,161 @@
 {{define "title"}}Posts{{end}}
 
-{{define "main"}}   
-    <article>
-        <h3>Filters</h3>
-        <form action="" method="GET">
-            <fieldset>
-                <legend>
-                    Sports
-                </legend>
-
-                {{range $sport := .Data.Sports}}
-                    <div>
-                        <label for="{{$sport.Name}}">{{$sport.Name}}</label>
-                        <input type="checkbox" name="sport" value="{{$sport.Name}}" id="{{$sport.Name}}"
-                            {{range $.Data.Query.Sport}}
-                                {{if eq . $sport.Name}}
-                                    checked
-                                {{end}}
-                            {{end}}
-                        />
-                    </div>
-                {{end}}
-            </fieldset>
-
-            <fieldset>
-                <legend>
-                    Availability
-                </legend>
-
-                <table id="timetable">
-                    <thead>
-                        <tr>
-                            <th scope="col">
-                            </th>
-                            {{range .Data.Times}}
-                                <th scope="col">
-                                    <button type="button">
-                                        {{.Name}}
-                                    </button>
-                                </th>
-                            {{end}}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range $day := .Data.Days}}
-                            <tr>
-                                <th scope="row">
-                                    <button type="button">
-                                        {{$day.Abbrev}}
-                                    </button>
-                                </th>
-                                {{range $time := $.Data.Times}}
-                                    <td>
-                                        <input type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}"
-                                            {{range $.Data.Query.Timeslot}}
-                                                {{if and (eq .Day $day.Abbrev) (eq .Time $time.Abbrev)}}
-                                                    checked
-                                                {{end}}
-                                            {{end}}
-                                        />
-                                    </td>
-                                {{end}}
-                            </tr>
-                        {{end}}
-                    </tbody>
-                </table>
-            </fieldset>
-
-            <a href="?">
-                Clear All
-            </a>
-
-            <button type="submit">
-                Apply
-            </button>
-        </form>
-    </article>
-
-    <section>
-        <h1>
-            Posts
-        </h1>
-
-        <a href="/posts/new">New post</a>
-
-
-        <ul>
-            {{range .Data.Posts}}
-                <li>
-                    <span>
-                        {{.Sport}}
-                    </span>
-
-                    <span>
-                        {{.UserName}}
-                    </span>
-
-                    <span>
-                        {{.SkillLevel}}
-                    </span>
-                    
-                    <span>
-                        {{since .CreatedAt}}
-                    </span>
-
-                    <a href="/posts/{{.ID}}/{{queryEscape .UserName}}">
-                        >>
+{{define "main"}}
+    {{template "header" .}}
+    <div class="flex flex-row-reverse flex-wrap justify-end gap-4 my-12">
+        <article class="flex-1">
+            <header class="flex items-end justify-between mb-8">
+                <h1 class="text-2xl font-bold">
+                    Posts
+                </h1>
+                <nav>
+                    <a class="px-4 py-1 font-bold text-center rounded text-white bg-beaver-orange hover:bg-gray-700 hover:no-underline" href="/posts/new">
+                        New Post
                     </a>
-                </li>
-            {{end}}
-        </ul>
-    </section>
+                </nav>
+            </header>
+            <table class="w-full text-sm">
+                <thead class="mb-2">
+                    <tr class="border-b-8 text-gray-600 border-white">
+                        <th class="pl-2 text-left font-normal italic">
+                            Name
+                        </th>
+                        <th class="text-left font-normal italic">
+                            Sport
+                        </th>
+                        <th class="text-left font-normal italic">
+                            Skill
+                        </th>
+                        <th class="pr-2 text-right font-normal italic">
+                            Date
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="[&>*:nth-child(odd)]:bg-gray-100">
+                    {{range .Data.Posts}}
+                        <tr>
+                            <td class="h-10 py-1 pr-4 pl-2">
+                                <a href="/posts/{{.ID}}/{{queryEscape .UserName}}">
+                                    {{.UserName}}
+                                </a>
+                            </td>
+    
+                            <td class="h-10 py-1 pr-4">
+                                {{capitalize .Sport}}
+                            </td>
+        
+                            <td class="h-10 py-1 pr-4">
+                                {{capitalize .SkillLevel}}
+                            </td>
+                            
+                            <td class="h-10 py-1 pr-2 text-right text-gray-600">
+                                {{humanDate .CreatedAt}}
+                            </td>
+                        </tr>
+                    {{end}}
+                </tbody>
+            </table>
+            <nav class="flex justify-center mt-4 text-sm">
+                {{with .Data.PrevPage}}
+                    <a class="underline" href="{{.}}">
+                        Prev Page
+                    </a>
+                {{end}}
+
+                {{if and .Data.PrevPage .Data.NextPage}}
+                    <span> | </span>
+                {{end}}
+
+                {{with .Data.NextPage}}
+                    <a class="underline" href="{{.}}">
+                        Next Page
+                    </a>
+                {{end}}
+            </nav>
+        </article>
+        <aside class="max-w-64 w-full">
+            <h2 class="text-xl mb-2">
+                Filters
+            </h2>
+            <form action="" method="GET">
+                <div class="flex gap-2 pb-6 text-sm">
+                    <a class="w-16 text-center py-0.5 rounded border border-1 text-black border-gray-700 bg-gray-200 hover:bg-blue-200 hover:no-underline" href="?">
+                        Clear
+                    </a>
+                    <button class="w-16 py-0.5 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-gray-300 hover:ring-2 hover:ring-electric-beav" type="submit">
+                        Apply
+                    </button>
+                </div>
+                <div class="flex sm:flex-col sm:justify-between gap-y-6">
+                    <fieldset>
+                        <legend class="mb-2">
+                            Sports:
+                        </legend>
+                        <ul class="flex flex-col gap-2 text-sm">
+                            {{range $sport := .Data.Sports}}
+                                <li class="inline-flex gap-1.5 items-center w-fit rounded hover:cursor-pointer hover:ring-2 ring-blue-200">
+                                    <input class="hover:cursor-pointer" type="checkbox" name="sport" value="{{$sport.Name}}" id="{{$sport.Name}}"
+                                        {{range $.Data.Query.Sport}}
+                                            {{if eq . $sport.Name}}
+                                                checked
+                                            {{end}}
+                                        {{end}}
+                                    />
+                                    <label class="hover:cursor-pointer" for="{{$sport.Name}}">
+                                        {{capitalize $sport.Name}}
+                                    </label>
+                                </li>
+                            {{end}}
+                        </ul>
+                    </fieldset>
+                    <fieldset>
+                        <legend class="mb-2">
+                            Availability:
+                        </legend>
+                        <table id="timetable" class="font-mono text-xs">
+                            <thead>
+                                <tr>
+                                    <td></td>
+                                    {{range .Data.Times}}
+                                        <th class="p-1 font-normal" scope="col">
+                                            <button class="w-full p-1 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-green-200" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
+                                                {{capitalize .Abbrev}}
+                                            </button>
+                                        </th>
+                                    {{end}}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range $day := .Data.Days}}
+                                    <tr>
+                                        <th class="font-normal p-1" scope="row">
+                                            <button class="p-1 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-green-200" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
+                                                {{capitalize $day.Abbrev}}
+                                            </button>
+                                        </th>
+                                        {{range $time := $.Data.Times}}
+                                            <td class="border border-gray-600">
+                                                <div class="flex">
+                                                    <input class="appearance-none w-full h-8 border-4 border-gray-100 bg-gray-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}"
+                                                        {{range $.Data.Query.Timeslot}}
+                                                            {{if and (eq .Day.Abbrev $day.Abbrev) (eq .Time.Abbrev $time.Abbrev)}}
+                                                                checked
+                                                            {{end}}
+                                                        {{end}}
+                                                    />
+                                                </div>
+                                            </td>
+                                        {{end}}
+                                    </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </fieldset>
+                </div>
+            </form>
+        </aside>
+    </div>
+    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}

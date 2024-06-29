@@ -1,12 +1,11 @@
 {{define "header"}}
-<header>
-    <a>
+<header class="flex flex-wrap justify-between items-end gap-x-8">
+    <a class="text-2xl font-bold text-beaver-orange" href="/">
         Racket Connections
     </a>
-
     {{if .IsAuthenticated}}
-        <div>
-            <nav class="flex gap-6">
+        <div class="flex gap-12">
+            <nav class="flex items-center gap-6">
                 <a href="/posts">Posts</a>
                 <a href="/ladders">Ladders</a>
                 <a href="/profile">Profile</a>
@@ -15,7 +14,7 @@
             <form action="/auth/logout" method="POST">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 
-                <button>
+                <button class="w-16 py-0.5 text-sm rounded border border-1 border-gray-700 bg-gray-200 hover:bg-gray-300 hover:ring-2 hover:ring-blue-300">
                     Logout
                 </button>
             </form>

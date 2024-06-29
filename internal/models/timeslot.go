@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"errors"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -75,22 +74,20 @@ func (m *TimeslotModel) Insert(userID, dayID, timeID int) error {
 	return err
 }
 
-type TimeslotUser struct {
-	Day  string
-	Time string
+type Timeslot struct {
+	Day  *DayOfWeek
+	Time *TimeOfDay
 }
 
-func scanTimeslotUser(row pgx.CollectableRow) (*TimeslotUser, error) {
-	var d TimeslotUser
-	err := row.Scan(&d.Day, &d.Time)
-
-	return &d, err
-}
-
-func (m *TimeslotModel) User(userID int) ([]*TimeslotUser, error) {
+// Returns a map with key of DayOfWeek ID and values list of TimeOfDay
+func (m *TimeslotModel) User(userID int) ([]*Timeslot, error) {
 	sql := `SELECT
+			d.id_,
 			d.name_,
-			t.name_
+			d.abbrev_,
+			t.id_,
+			t.name_,
+			t.abbrev_
 		FROM timeslot_ s
 		INNER JOIN day_of_week_ d
 			ON d.id_ = s.day_id_
@@ -103,19 +100,28 @@ func (m *TimeslotModel) User(userID int) ([]*TimeslotUser, error) {
 		return nil, err
 	}
 
-	t, err := pgx.CollectRows(rows, scanTimeslotUser)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, ErrNoRecord
-		} else {
+	var timeslots []*Timeslot
+	for rows.Next() {
+		var d DayOfWeek
+		var t TimeOfDay
+
+		err := rows.Scan(
+			&d.ID,
+			&d.Name,
+			&d.Abbrev,
+			&t.ID,
+			&t.Name,
+			&t.Abbrev)
+
+		if err != nil {
 			return nil, err
 		}
+
+		timeslots = append(timeslots, &Timeslot{
+			Day:  &d,
+			Time: &t,
+		})
 	}
 
-	return t, nil
-}
-
-type TimeslotAbbrev struct {
-	Day  string
-	Time string
+	return timeslots, nil
 }

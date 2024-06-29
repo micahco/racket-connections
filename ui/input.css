@@ -2,16 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
+/* default border color */
+@layer components {
+    .border,
+    .border-r,
+    .border-l,
+    .border-t,
+    .border-b,
+    .border-x,
+    .border-y {
+        @apply border-gray-400;
+    }
+}
+
 :root {
     color-scheme: light dark;
 }
 
 a {
     @apply text-blue-600 hover:underline;
-}
-
-.flash {
-    @apply p-4 w-full text-center border rounded-md;
 }
 
 .flash-info {

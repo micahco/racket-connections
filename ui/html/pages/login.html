@@ -1,54 +1,99 @@
 {{define "title"}}Racket Connections{{end}}
 
 {{define "main"}}
-    <h1>
-        Racket Connections
-    </h1>
-
-    <p>
-        An online board for OSU students interested in playing court sports.
-    </p>
-
-    <h2>
-        Login
-    </h2>
-
-    <form action="/auth/login" method="POST">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <article class="mb-32">
+        <h1 class="text-2xl font-bold text-beaver-orange">
+            Racket Connections
+        </h1>
+    
+        <p class="mt-6">
+            An online board for OSU students interested in playing court sports and making friends.
+        </p>
+    
+        <div class="flex flex-wrap gap-x-16 gap-y-4 mt-12">
+            <section class="max-w-sm w-full">
+                <h2 class="text-xl">
+                    Existing user:
+                </h2>
+            
+                <form action="/auth/login" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <div class="flex flex-col gap-4 mt-6">
+                        <div class="md:flex items-center gap-2">
+                            <div class="md:w-1/4 md:text-right">
+                                <label for="email">
+                                    Email
+                                </label>
+                            </div>
+                            <div class="md:w-3/4">
+                                <input class="w-full p-2 appearance-none border rounded" type="email" name="email" autocomplete="username" required>
+                            </div>
+                        </div>
+                        <div class="md:flex items-center gap-2">
+                            <div class="md:w-1/4 md:text-right">
+                                <label for="password">
+                                    Password
+                                </label>
+                            </div>
+                            <div class="md:w-3/4">
+                                <input class="w-full p-2 appearance-none border rounded" type="password" name="password" autocomplete="current-password" required>
+                            </div>
+                        </div>
+                        <div class="md:flex gap-2">
+                            <div class="md:w-1/4"></div>
+                            <div class="md:w-3/4 flex items-center gap-4">
+                                <div class="md:w-28">
+                                    <button class="w-full py-2 text-sm rounded border border-1 border-gray-700 bg-gray-200 hover:bg-gray-300">
+                                        Login
+                                    </button>
+                                </div>
+                        
+                                <div>
+                                    <a class="text-sm" href="/auth/reset">
+                                        Forgot password?
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>    
+            </section>
         
-        <div>
-            <label for="email">Email</label>
-            <input type="email" name="email" autocomplete="username" required>
+            <section class="max-w-sm w-full">
+                <h2 class="text-xl">
+                    New user:
+                </h2>
+
+                <form action="/auth/signup" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <div class="flex flex-col gap-4 mt-6">
+                        <div class="md:flex items-center gap-2">
+                            <div class="md:w-1/4 md:text-right">
+                                <label for="email">
+                                    Email
+                                </label>
+                            </div>
+                            <div class="md:w-3/4">
+                                <input class="w-full p-2 appearance-none border rounded" type="email" name="email" autocomplete="username" required>
+                            </div>
+                        </div>
+                        <div class="md:flex gap-2">
+                            <div class="md:w-1/4"></div>
+                            <div class="md:w-3/4 flex items-center gap-4">
+                                <div class="md:w-28">
+                                    <button class="w-full py-2 text-sm rounded border border-1 border-gray-700 bg-gray-200 hover:bg-gray-300">
+                                        Sign Up
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>   
+            </section>
         </div>
-        
-        <div>
-            <label for="password">Password</label>
-            <input type="password" name="password" autocomplete="current-password" required>
-        </div>
-        
-        <button>
-            Login
-        </button>
+    </article>
 
-        <a href="/auth/reset">Forgot password?</a>
-    </form>
-
-    <h2>
-        Sign Up
-    </h2>
-
-    <form action="/auth/signup" method="POST">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        
-        <div>
-            <label for="email">Email</label>
-            <input type="email" name="email" autocomplete="username" required>
-        </div>
-
-        <button>
-            Sign Up
-        </button>
-    </form>
+    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}{{end}}

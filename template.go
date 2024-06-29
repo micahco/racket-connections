@@ -24,7 +24,6 @@ type templateData struct {
 	Data            interface{}
 }
 
-// Data must be initialized with newTemplateData()
 func (app *application) render(w http.ResponseWriter, r *http.Request, status int, page string, data interface{}) {
 	td := templateData{
 		CurrentYear:     time.Now().Year(),
@@ -95,22 +94,22 @@ func (app *application) renderFromCache(w http.ResponseWriter, status int, page 
 	return nil
 }
 
-func date(t time.Time) string {
-	return t.Format("02 January 2006")
-}
-
-func since(t time.Time) string {
+func humanDate(t time.Time) string {
 	days := int(time.Since(t).Hours() / 24)
 	if days == 0 {
 		return "today"
+	} else if days == 1 {
+		return "1 day ago"
 	} else if days < 7 {
-		return fmt.Sprintf("%d days", days)
+		return fmt.Sprintf("%d days ago", days)
+	} else if days == 7 {
+		return "1 week ago"
 	} else if days < 30 {
 		return fmt.Sprintf("%d weeks", days%7)
 	} else if days < 365 {
-		return fmt.Sprintf("%d months", days%30)
+		return t.Format("02 January")
 	}
-	return fmt.Sprintf("%d years", days%365)
+	return t.Format("02 Jan 2006")
 }
 
 func capitalize(s string) string {
@@ -119,8 +118,7 @@ func capitalize(s string) string {
 }
 
 var functions = template.FuncMap{
-	"date":        date,
-	"since":       since,
+	"humanDate":   humanDate,
 	"capitalize":  capitalize,
 	"queryEscape": url.QueryEscape,
 }

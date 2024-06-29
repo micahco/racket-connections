@@ -1,29 +1,37 @@
 {{define "title"}}New Password{{end}}
 
 {{define "main"}}
-    <h1>
-        Update Password
-    </h1>
+    {{template "header" .}}
 
-    <form action="/auth/reset/update" method="POST">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <article>
+        <h1>
+            Update Password
+        </h1>
+    
+        <section>
+            <form action="/auth/reset/update" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+        
+                {{if not .Data.HasSessionEmail}}
+                    <div>
+                        <label for="email">Email</label>
+                        <input type="email" name="email" autocomplete="username" required>
+                    </div>
+                {{end}}
+        
+                <div>
+                    <label for="password">New Password</label>
+                    <input type="password" name="password" autocomplete="current-password" required>
+                </div>
+        
+                <button>
+                    Submit
+                </button>
+            </form>
+        </section>
+    </article>
 
-        {{if not .Data.HasSessionEmail}}
-            <div>
-                <label for="email">Email</label>
-                <input type="email" name="email" autocomplete="username" required>
-            </div>
-        {{end}}
-
-        <div>
-            <label for="password">New Password</label>
-            <input type="password" name="password" autocomplete="current-password" required>
-        </div>
-
-        <button>
-            Submit
-        </button>
-    </form>
+    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}{{end}}

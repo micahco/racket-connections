@@ -7,10 +7,12 @@ import (
 )
 
 type profileData struct {
-	Name     string
-	Email    string
-	Contacts []*models.UserContact
-	Times    []*models.TimeslotUser
+	Name      string
+	Email     string
+	Contacts  []*models.UserContact
+	Days      []*models.DayOfWeek
+	Times     []*models.TimeOfDay
+	Timeslots []*models.Timeslot
 }
 
 func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request) {
@@ -35,18 +37,23 @@ func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	t, err := app.timeslots.User(userID)
+	timeslots, err := app.timeslots.User(userID)
 	if err != nil {
 		app.serverError(w, err)
 
 		return
 	}
 
+	days, _ := app.timeslots.Days()
+	times, _ := app.timeslots.Times()
+
 	data := profileData{
-		Name:     p.Name,
-		Email:    p.Email,
-		Contacts: c,
-		Times:    t,
+		Name:      p.Name,
+		Email:     p.Email,
+		Contacts:  c,
+		Days:      days,
+		Times:     times,
+		Timeslots: timeslots,
 	}
 
 	app.render(w, r, http.StatusOK, "profile.html", data)

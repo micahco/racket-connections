@@ -1,53 +1,61 @@
 {{define "title"}}New Post{{end}}
 
 {{define "main"}}
-    <h1>
-        New Post
-    </h1>
+    {{template "header" .}}
 
-    <form action="/posts/new" method="POST">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-
-        <div>
-            <label for="sport">
-                Sport
-            </label>
-            
-            <select id="sport" name="sport">
-                {{range .Data.Sports}}
-                    {{if eq .Name $.Data.SportQuery}}
-                        <option value="{{.ID}}" selected>{{.Name}}</option>
-                    {{else}}
-                        <option value="{{.ID}}">{{.Name}}</option>
-                    {{end}}
-                {{end}}
-            </select>
-        </div>
+    <article>
+        <h1>
+            New Post
+        </h1>
+    
+        <section>
+            <form action="/posts/new" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
         
-        <div>
-            <label for="skill-level">
-                Skill Level
-            </label>
+                <div>
+                    <label for="sport">
+                        Sport
+                    </label>
+                    
+                    <select id="sport" name="sport">
+                        {{range .Data.Sports}}
+                            {{if eq .Name $.Data.SportQuery}}
+                                <option value="{{.ID}}" selected>{{.Name}}</option>
+                            {{else}}
+                                <option value="{{.ID}}">{{.Name}}</option>
+                            {{end}}
+                        {{end}}
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="skill-level">
+                        Skill Level
+                    </label>
+        
+                    <select id="skill-level" name="skill-level">
+                        {{range .Data.Skills}}
+                            <option value="{{.ID}}">{{.Name}}</option>
+                        {{end}}
+                    </select>
+                </div>
+        
+                <div>
+                    <label for="skill-level">
+                        Comment
+                    </label>
+        
+                    <textarea name="comment" id="comment" placeholder="Optional" rows="5" cols="33"></textarea>
+                </div>
+        
+                <button>
+                    Submit
+                </button>
+            </form>
+        </section>
+    </article>
 
-            <select id="skill-level" name="skill-level">
-                {{range .Data.Skills}}
-                    <option value="{{.ID}}">{{.Name}}</option>
-                {{end}}
-            </select>
-        </div>
-
-        <div>
-            <label for="skill-level">
-                Comment
-            </label>
-
-            <textarea name="comment" id="comment" placeholder="Optional" rows="5" cols="33"></textarea>
-        </div>
-
-        <button>
-            Submit
-        </button>
-    </form>
+    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}{{end}}

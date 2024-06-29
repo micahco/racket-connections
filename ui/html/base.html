@@ -5,17 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{template "title" .}}</title>
-    <!-- No style
     <link rel="stylesheet" href="/static/main.css">
-    -->
 </head>
-<body>
-
-    {{if .Flash.Message}}
-        <div class="flash flash-{{.Flash.Type}}">
-            {{.Flash.Message}}
-        </div>
-    {{end}}
+<body class="max-w-5xl mx-auto px-4 pb-12">
+    <div class="pt-8 pb-8">
+        {{if .Flash.Message}}
+            <div role="status" class="p-4 w-full text-center border rounded-md flash-{{.Flash.Type}}">
+                {{.Flash.Message}}
+            </div>
+        {{end}}
+    </div>
 
     <main>
         {{template "main" .}}

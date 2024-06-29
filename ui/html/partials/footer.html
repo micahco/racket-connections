@@ -1,13 +1,19 @@
 {{define "footer"}}
-<footer>
+<footer class="flex flex-wrap items-end gap-x-12 gap-y-6 text-sm">
+    <p class="mt-4">
+        Copyright &copy; {{.CurrentYear}}. 
+        All rights reserved.
+        Developed for Oregon State University. 
+    </p>
     <nav>
-        <a href="/links">Some useful links...</a>
-        <a href="/about">About this website</a>
-        <a href="https://github.com/micahco/racket-connections">Source Code</a>
+        <ul class="flex gap-4">
+            <li>
+                <a href="/links">Links</a>
+            </li>
+            <li>
+                <a href="/about">About</a>
+            </li>
+        </ul>
     </nav>
-    
-    <div>
-        <p>&copy; {{.CurrentYear}}. Developed for Oregon State University. All rights reserved.</p>
-    </div>
 </footer>
 {{end}}

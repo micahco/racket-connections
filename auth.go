@@ -22,6 +22,12 @@ type authLoginForm struct {
 }
 
 func (app *application) handleAuthLoginPost(w http.ResponseWriter, r *http.Request) {
+	if app.isAuthenticated(r) {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
@@ -91,6 +97,12 @@ type authSignupForm struct {
 }
 
 func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Request) {
+	if app.isAuthenticated(r) {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
 	err := r.ParseForm()
 	if err != nil {
 		clientError(w, http.StatusBadRequest)
@@ -179,6 +191,12 @@ type authRegisterData struct {
 }
 
 func (app *application) handleAuthRegisterGet(w http.ResponseWriter, r *http.Request) {
+	if app.isAuthenticated(r) {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
 	queryToken := r.URL.Query().Get("token")
 	if queryToken == "" {
 		unauthorizedError(w)
@@ -219,6 +237,12 @@ var ExpiredTokenFlash = FlashMessage{
 }
 
 func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Request) {
+	if app.isAuthenticated(r) {
+		clientError(w, http.StatusBadRequest)
+
+		return
+	}
+
 	// Validate form
 	err := r.ParseForm()
 	if err != nil {
@@ -253,7 +277,7 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 		// validate
 	case "phone":
 		// validate
-	case "link":
+	case "other":
 		// validate
 	default:
 		clientError(w, http.StatusBadRequest)

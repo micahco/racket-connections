@@ -1,130 +1,152 @@
 {{define "title"}}Register{{end}}
 
 {{define "main"}}
-    <h1>
-        Register
-    </h1>
-
-    <form action="/auth/register" method="POST">
-        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        
-        <h2>
-            Login
-        </h2>
-
-        {{if not .Data.HasSessionEmail}}
-            <div>
-                <label for="email">Email</label>
-                <input type="email" name="email" autocomplete="username" required>
-            </div>
-        {{end}}
-
-        <div>
-            <label for="password">Password</label>
-            <input type="password" name="password" autocomplete="current-password" required>
-        </div>
-        
-        <h2>
-            Contact Information
-        </h2>
-
-        <div>
-            <label for="name">Full Name</label>
-            <input type="text" name="name" autocomplete="name" required>
-        </div>
-
-        <p>
-            This is how other users will reach out to you to make connections. You can click on the dropdown to select a different method.
-        </p>
-        
-        <select id="contact-method" name="contact-method">
-            {{range .Data.ContactMethods}}
-                <option value="{{.Name}}">{{.Name}}</option>
-            {{end}}
-        </select>
-        <input type="text" id="contact-value" name="contact-value" required>
-
-        <dl>
-            <dt>Email</dt>
-            <dd>
-                We recommend you use a personal address and not your school email.
-            </dd>
-
-            <dt>Phone</dt>
-            <dd>
-                Who dis?
-            </dd>
-
-            <dt>Other</dt>
-            <dd>
-                Here you can link to your Discord or Facebook.
-            </dd>
-        </dl>
-
-        <h2>
-            Availability
-        </h2>
-
-        <p>
-            <em>Optional.</em> Other users will be able to see your posts when filtering by availability.
-        </p>
-
-        <figure>
-            <figcaption>
-
-            </figcaption>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">
-                            Day
-                        </th>
-                        {{range .Data.Times}}
-                            <th scope="col">
-                                <button type="button">
-                                    {{.Name}}
-                                </button>
-                            </th>
-                        {{end}}
-                    </tr>
-                </thead>
-                <tbody>
-                    {{range $day := .Data.Days}}
-                        <tr>
-                            <th scope="row">
-                                <button type="button">
-                                    {{$day.Abbrev}}
-                                </button>
-                            </th>
-                            {{range $time := $.Data.Times}}
-                                <td>
-                                    <input type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}">
-                                </td>
-                            {{end}}
-                        </tr>
-                    {{end}}
-                </tbody>
-            </table>
-
-            <footer>
-                <dl>
-                    <dt>Morning</dt>
-                    <dd>08:00 - 12:00</dd>
-
-                    <dt>Afternoon</dt>
-                    <dd>12:00 - 4:00</dd>
-
-                    <dt>Evening</dt>
-                    <dd>4:00 - 8:00</dd>
-                </dl>
-            </footer>
-        </figure>
-
-        <button>
-            Create Account
-        </button>
-    </form>
+    {{template "header" .}}
+    <article class="mt-8">
+        <h1 class="text-xl font-bold">
+            Register
+        </h1>
+        <section class="mt-6">
+            <form action="/auth/register" method="POST">
+                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                <div class="flex flex-wrap gap-x-16 gap-y-8">
+                    <div class="flex flex-col gap-y-8 md:justify-between max-w-sm w-full">
+                        <fieldset>
+                            <div class="flex flex-col gap-4">
+                                <legend class="font-bold">
+                                    Login
+                                </legend>
+                                {{if not .Data.HasSessionEmail}}
+                                    <div class="md:flex items-center gap-2">
+                                        <div class="md:w-1/4 md:text-right">
+                                            <label for="email">
+                                                Email
+                                            </label>
+                                        </div>
+                                        <div class="md:w-3/4">
+                                            <input class="w-full p-2 appearance-none border rounded" type="email" name="email" autocomplete="username" required>
+                                        </div>
+                                    </div>
+                                {{end}}
+                                <div class="md:flex items-center gap-2">
+                                    <div class="md:w-1/4 md:text-right">
+                                        <label for="password">
+                                            Password
+                                        </label>
+                                    </div>
+                                    <div class="md:w-3/4">
+                                        <input class="w-full p-2 appearance-none border rounded" type="password" name="password" autocomplete="current-password" required>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                        <fieldset>
+                            <div class="flex flex-col gap-4">
+                                <legend class="font-bold">
+                                    Contact Information
+                                </legend>
+                                <div class="md:flex items-center gap-2">
+                                    <div class="md:w-1/4 md:text-right">
+                                        <label for="name">
+                                            Full Name
+                                        </label>
+                                    </div>
+                                    <div class="md:w-3/4">
+                                        <input class="w-full p-2 appearance-none border rounded" type="name" name="name" autocomplete="name" required>
+                                    </div>
+                                </div>
+                                <div class="flex">
+                                    <div class="w-1/4 flex">
+                                        <select class="w-full px-4 py-2 border rounded rounded-tr-none rounded-br-none bg-gray-100 border-gray-400 hover:border-gray-700" id="contact-method" name="contact-method">
+                                            {{range .Data.ContactMethods}}
+                                                <option value="{{.Name}}">{{capitalize .Name}}</option>
+                                            {{end}}
+                                        </select>
+                                    </div>
+                                    <div class="w-3/4">
+                                        <input class="w-full p-2 appearance-none border border-l-0 rounded rounded-tl-none rounded-bl-none" type="text" id="contact-value" name="contact-value" autocomplete="name" required>
+                                    </div>
+                                </div>
+                                <p class="text-sm">
+                                    This is how other users will reach out to you to make connections. You can click on the dropdown to select a different method.
+                                </p>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="max-w-md w-full">
+                        <fieldset>
+                            <legend class="flex gap-4">
+                                <span class="font-bold">
+                                    Availability 
+                                </span>
+                                <em>
+                                    Optional
+                                </em>
+                            </legend>
+                            <p class="my-4 text-sm">
+                                By entering your timeslots, other users will be able to see your posts when filtering by availability.
+                            </p>
+                            <article class="flex flex-wrap gap-x-4 gap-y-2">
+                                <table id="timetable" class="font-mono text-xs">
+                                    <thead>
+                                        <tr>
+                                            <td></td>
+                                            {{range .Data.Times}}
+                                                <th class="w-24 p-1 font-normal" scope="col">
+                                                    <button class="w-full p-1 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-green-200" type="button" aria-label="Toggle {{capitalize .Name}}">
+                                                        {{capitalize .Name}}
+                                                    </button>
+                                                </th>
+                                            {{end}}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {{range $day := .Data.Days}}
+                                            <tr>
+                                                <th class="font-normal p-1" scope="row">
+                                                    <button class="p-1 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-green-200" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{capitalize .Name}}">
+                                                        {{capitalize $day.Abbrev}}
+                                                    </button>
+                                                </th>
+                                                {{range $time := $.Data.Times}}
+                                                    <td class="border border-gray-600">
+                                                        <div class="flex">
+                                                            <input class="appearance-none w-full h-8 border-4 border-gray-100 bg-gray-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}" />
+                                                        </div>
+                                                    </td>
+                                                {{end}}
+                                            </tr>
+                                        {{end}}
+                                    </tbody>
+                                </table>
+                                <dl class="flex justify-between gap-2 w-full px-8 md:flex-col md:justify-start md:w-auto md:p-0">
+                                    <div>
+                                        <dt>Morning</dt>
+                                        <dd class="italic">08:00 - 12:00</dd>
+                                    </div>
+                
+                                    <div>
+                                        <dt>Afternoon</dt>
+                                        <dd class="italic">12:00 - 4:00</dd>
+                                    </div>
+                
+                                    <div>
+                                        <dt>Evening</dt>
+                                        <dd class="italic">4:00 - 8:00</dd>
+                                    </div>
+                                </dl>
+                            </article>
+                        </fieldset>
+                    </div>
+                </div>
+                <div class="flex justify-center max-w-sm w-full mt-8">
+                    <button class="w-48 py-2 text-sm rounded border border-1 border-gray-700 bg-gray-200 hover:bg-gray-300">
+                        Create Account
+                    </button>
+                </div>
+            </form>
+        </section>
+    </article>
 {{end}}
 
 {{define "scripts"}}
