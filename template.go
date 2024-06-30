@@ -94,6 +94,10 @@ func (app *application) renderFromCache(w http.ResponseWriter, status int, page 
 	return nil
 }
 
+func dateFormat(t time.Time) string {
+	return t.Format("02 Jan 2006")
+}
+
 func humanDate(t time.Time) string {
 	days := int(time.Since(t).Hours() / 24)
 	if days == 0 {
@@ -109,7 +113,7 @@ func humanDate(t time.Time) string {
 	} else if days < 365 {
 		return t.Format("02 January")
 	}
-	return t.Format("02 Jan 2006")
+	return dateFormat(t)
 }
 
 func capitalize(s string) string {
@@ -119,6 +123,7 @@ func capitalize(s string) string {
 
 var functions = template.FuncMap{
 	"humanDate":   humanDate,
+	"dateFormat":  dateFormat,
 	"capitalize":  capitalize,
 	"queryEscape": url.QueryEscape,
 }

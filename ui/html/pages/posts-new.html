@@ -2,59 +2,54 @@
 
 {{define "main"}}
     {{template "header" .}}
-
-    <article>
-        <h1>
+    <article class="my-12">
+        <h1 class="text-xl font-bold mb-8">
             New Post
         </h1>
-    
-        <section>
+        <section class="max-w-sm w-full">
             <form action="/posts/new" method="POST">
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        
-                <div>
-                    <label for="sport">
-                        Sport
-                    </label>
-                    
-                    <select id="sport" name="sport">
-                        {{range .Data.Sports}}
-                            {{if eq .Name $.Data.SportQuery}}
-                                <option value="{{.ID}}" selected>{{.Name}}</option>
-                            {{else}}
-                                <option value="{{.ID}}">{{.Name}}</option>
-                            {{end}}
-                        {{end}}
-                    </select>
+                <div class="flex flex-col gap-y-8">
+                    <div class="flex flex-wrap justify-between gap-8">
+                        <div class="flex items-center gap-2 w-full sm:w-fit">
+                            <label class="w-1/2 sm:w-fit text-right" for="sport">
+                                Sport:
+                            </label>
+                            <select class="w-1/2 sm:w-fit p-2 text-sm border rounded bg-gray-100 border-gray-400 hover:border-gray-700" id="contact-method" id="sport" name="sport">
+                                {{range .Data.Sports}}
+                                    <option value="{{.ID}}">{{capitalize .Name}}</option>
+                                {{end}}
+                            </select>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-fit">
+                            <label class="w-1/2 sm:w-fit text-right" for="skill-level">
+                                Skill Level:
+                            </label>
+                            <select class="w-1/2 sm:w-fit p-2 text-sm border rounded bg-gray-100 border-gray-400 hover:border-gray-700" id="skill-level" name="skill-level">
+                                {{range .Data.Skills}}
+                                    <option value="{{.ID}}">{{capitalize .Name}}</option>
+                                {{end}}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label class="flex gap-4" for="skill-level">
+                            <span>
+                                Comment
+                            </span>
+                            <span class="italic text-gray-600">
+                                Optional
+                            </span>
+                        </label>
+                        <textarea class="p-2 border rounded" name="comment" id="comment" placeholder="Challenge me!" rows="5" cols="33"></textarea>
+                    </div>
+                    <button class="w-full sm:w-32 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-gray-700">
+                        Create Post
+                    </button>
                 </div>
-                
-                <div>
-                    <label for="skill-level">
-                        Skill Level
-                    </label>
-        
-                    <select id="skill-level" name="skill-level">
-                        {{range .Data.Skills}}
-                            <option value="{{.ID}}">{{.Name}}</option>
-                        {{end}}
-                    </select>
-                </div>
-        
-                <div>
-                    <label for="skill-level">
-                        Comment
-                    </label>
-        
-                    <textarea name="comment" id="comment" placeholder="Optional" rows="5" cols="33"></textarea>
-                </div>
-        
-                <button>
-                    Submit
-                </button>
             </form>
         </section>
     </article>
-
     {{template "footer" .}}
 {{end}}
 

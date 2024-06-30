@@ -9,24 +9,24 @@
                     Posts
                 </h1>
                 <nav>
-                    <a class="px-4 py-1 font-bold text-center rounded text-white bg-beaver-orange hover:bg-gray-700 hover:no-underline" href="/posts/new">
+                    <a class="px-4 py-2 font-bold text-center rounded text-white bg-beaver-orange hover:bg-gray-700 hover:no-underline" href="/posts/new">
                         New Post
                     </a>
                 </nav>
             </header>
-            <table class="w-full text-sm">
+            <table class="w-full text-sm ">
                 <thead class="mb-2">
-                    <tr class="border-b-8 text-gray-600 border-white">
-                        <th class="pl-2 text-left font-normal italic">
+                    <tr class="text-gray-600">
+                        <th class="h-10 pl-2 text-left">
                             Name
                         </th>
-                        <th class="text-left font-normal italic">
+                        <th class="h-10 text-left">
                             Sport
                         </th>
-                        <th class="text-left font-normal italic">
+                        <th class="h-10 text-left">
                             Skill
                         </th>
-                        <th class="pr-2 text-right font-normal italic">
+                        <th class="h-10 pr-2 text-right">
                             Date
                         </th>
                     </tr>
@@ -39,15 +39,12 @@
                                     {{.UserName}}
                                 </a>
                             </td>
-    
                             <td class="h-10 py-1 pr-4">
                                 {{capitalize .Sport}}
                             </td>
-        
                             <td class="h-10 py-1 pr-4">
                                 {{capitalize .SkillLevel}}
                             </td>
-                            
                             <td class="h-10 py-1 pr-2 text-right text-gray-600">
                                 {{humanDate .CreatedAt}}
                             </td>
@@ -61,11 +58,9 @@
                         Prev Page
                     </a>
                 {{end}}
-
                 {{if and .Data.PrevPage .Data.NextPage}}
                     <span> | </span>
                 {{end}}
-
                 {{with .Data.NextPage}}
                     <a class="underline" href="{{.}}">
                         Next Page
@@ -73,7 +68,7 @@
                 {{end}}
             </nav>
         </article>
-        <aside class="max-w-64 w-full">
+        <aside class="w-full sm:max-w-52">
             <h2 class="text-xl mb-2">
                 Filters
             </h2>
@@ -86,7 +81,7 @@
                         Apply
                     </button>
                 </div>
-                <div class="flex sm:flex-col sm:justify-between gap-y-6">
+                <div class="flex sm:flex-col justify-between gap-y-6">
                     <fieldset>
                         <legend class="mb-2">
                             Sports:

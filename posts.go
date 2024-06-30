@@ -219,9 +219,8 @@ func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.R
 }
 
 type newPostData struct {
-	Sports     []*models.Sport
-	SportQuery string
-	Skills     []*models.SkillLevel
+	Sports []*models.Sport
+	Skills []*models.SkillLevel
 }
 
 func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request) {
@@ -239,12 +238,9 @@ func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	q := r.URL.Query().Get("sport")
-
 	data := newPostData{
-		Sports:     sports,
-		SportQuery: strings.ToLower(q),
-		Skills:     skills,
+		Sports: sports,
+		Skills: skills,
 	}
 
 	app.render(w, r, http.StatusOK, "posts-new.html", data)

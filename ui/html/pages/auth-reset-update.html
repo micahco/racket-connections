@@ -2,36 +2,33 @@
 
 {{define "main"}}
     {{template "header" .}}
-
-    <article>
-        <h1>
+    <article class="mt-8">
+        <h1 class="text-xl font-bold mb-4">
             Update Password
         </h1>
-    
-        <section>
-            <form action="/auth/reset/update" method="POST">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        
+        <form action="/auth/reset/update" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div class="flex flex-col gap-6 max-w-sm w-full">
+                <div class="flex flex-col gap-2">
+                    <p class="text-sm">
+                        Must be between 8 to 72 characters long
+                    </p>
+                    <input class="w-full p-2 appearance-none border rounded" type="password" name="password" autocomplete="current-password" required>
+                </div>
                 {{if not .Data.HasSessionEmail}}
-                    <div>
-                        <label for="email">Email</label>
-                        <input type="email" name="email" autocomplete="username" required>
+                    <div class="flex flex-col gap-2 max-w-sm w-full pb-6">
+                        <label class="font-bold" for="email">
+                            Email
+                        </label>
+                        <input class="w-full p-2 appearance-none border rounded" type="email" name="email" autocomplete="username" placeholder="onid@oregonstate.edu" required>
                     </div>
                 {{end}}
-        
-                <div>
-                    <label for="password">New Password</label>
-                    <input type="password" name="password" autocomplete="current-password" required>
-                </div>
-        
-                <button>
-                    Submit
+                <button class="w-full sm:w-24 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-gray-700">
+                    Update
                 </button>
-            </form>
-        </section>
+            </div>
+        </form>
     </article>
-
-    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}{{end}}

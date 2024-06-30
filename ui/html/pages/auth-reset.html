@@ -2,33 +2,28 @@
 
 {{define "main"}}
     {{template "header" .}}
-
-    <article>
-        <h1>
+    <article class="mt-8">
+        <h1 class="text-xl font-bold">
             Reset Password
         </h1>
-    
-        <p>
-            Enter the email address associated with your account. A link to reset your password will be sent to your login email.
+        <p class="my-4">
+            Enter your login email to receive a link to reset your password.
         </p>
-        
-        <section>
-            <form action="/auth/reset" method="POST">
-                <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-        
-                <div>
-                    <label for="email">Email</label>
-                    <input type="email" name="email" autocomplete="username" required>
+        <form action="/auth/reset" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div class="flex flex-col gap-6 max-w-sm w-full">
+                <div class="flex flex-col gap-2">
+                    <label class="font-bold" for="email">
+                        Email
+                    </label>
+                    <input class="w-full p-2 appearance-none border rounded" type="email" name="email" autocomplete="username" placeholder="onid@oregonstate.edu" required>
                 </div>
-        
-                <button>
+                <button class="w-full sm:w-24 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-gray-700">
                     Reset
                 </button>
-            </form>
-        </section>
+            </div>
+        </form>
     </article>
-
-    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}{{end}}
