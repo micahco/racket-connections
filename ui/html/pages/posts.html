@@ -52,6 +52,16 @@
                     {{end}}
                 </tbody>
             </table>
+            {{if not .Data.Posts}}
+                <div class="mt-8 flex flex-col items-center gap-4">
+                    <h2>
+                        No posts found...
+                    </h2>
+                    <p>
+                        <a href="?">Clear filters</a>
+                    </p>
+                </div>
+            {{end}}
             <nav class="flex justify-center mt-4 text-sm">
                 {{with .Data.PrevPage}}
                     <a class="underline" href="{{.}}">

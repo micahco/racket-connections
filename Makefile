@@ -1,5 +1,8 @@
 include .env
 
+build:
+	go build -o ./bin/rc-server
+
 docker:
 	docker start racket-connections && sleep 1
 
@@ -29,10 +32,7 @@ run: docker pg-drop pg-init pg-sample
 dev:
 	${MAKE} docker && ${MAKE} -j3 css run
 
-build:
-	go build -o ./bin/rc-server
-
-deploy: docker css-minify build
+deploy: docker css-minify pg-init build
 	./bin/rc-server \
 		-dsn=postgres://postgres:${RC_DB_PASS}@localhost:5432/postgres \
 		-smtp-host=${RC_SMTP_HOST} \

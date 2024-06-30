@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/justinas/nosurf"
@@ -121,10 +122,23 @@ func capitalize(s string) string {
 	return c.String(s)
 }
 
+func stripPhone(input string) string {
+	var result strings.Builder
+
+	for _, char := range input {
+		if char == '+' || char == 'x' || (char >= '0' && char <= '9') {
+			result.WriteRune(char)
+		}
+	}
+
+	return result.String()
+}
+
 var functions = template.FuncMap{
 	"humanDate":   humanDate,
 	"dateFormat":  dateFormat,
 	"capitalize":  capitalize,
+	"stripPhone":  stripPhone,
 	"queryEscape": url.QueryEscape,
 }
 

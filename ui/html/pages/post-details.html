@@ -71,7 +71,7 @@
                                     {{if eq .Method "email"}}
                                         <a href="mailto:{{.Value}}">{{.Value}}</a>
                                     {{else if eq .Method "phone"}}
-                                        <a href="tel:{{.Value}}">{{.Value}}</a>
+                                        <a href="tel:{{stripPhone .Value}}">{{.Value}}</a>
                                     {{else}}
                                         {{.Value}}
                                     {{end}}

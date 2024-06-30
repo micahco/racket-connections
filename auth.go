@@ -265,20 +265,23 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 	}
 
 	form.Validate(validator.NotBlank(form.name), "invalid name: cannot be blank")
-	form.Validate(validator.NotBlank(email), "invalid email: cannot be blank")
-	form.Validate(validator.Matches(email, validator.EmailRX), "invalid email: must be a valid email address")
-	form.Validate(validator.MaxChars(email, 254), "invalid email: must be no more than 254 characters long")
+	form.Validate(validator.NotBlank(email), "invalid login email: cannot be blank")
+	form.Validate(validator.Matches(email, validator.EmailRX), "invalid login email: must be a valid email address")
+	form.Validate(validator.MaxChars(email, 254), "invalid login email: must be no more than 254 characters long")
+	form.Validate(validator.PermittedEmailDomain(email, "oregonstate.edu"), "invalid login email: must be an OSU email address")
 	form.Validate(validator.NotBlank(form.password), "invalid password: cannot be blank")
 	form.Validate(validator.MinChars(form.password, 8), "invalid password: must be at least 8 characters long")
 	form.Validate(validator.MaxChars(form.password, 72), "invalid password: must be no more than 72 characters long")
+	form.Validate(validator.NotBlank(form.contactValue), "invalid contact value: cannot be blank")
 
 	switch form.contactMethod {
 	case "email":
-		// validate
+		form.Validate(validator.Matches(form.contactValue, validator.EmailRX), "invalid contact email: must be a valid email address")
+		form.Validate(validator.MaxChars(form.contactValue, 254), "invalid contact email: must be no more than 254 characters long")
 	case "phone":
-		// validate
+		form.Validate(validator.Matches(form.contactValue, validator.PhoneRX), "invalid contact phone: must be a valid phone number")
 	case "other":
-		// validate
+		// cleanse for anything malicous
 	default:
 		clientError(w, http.StatusBadRequest)
 

@@ -11,6 +11,7 @@ import (
 var (
 	// https://html.spec.whatwg.org/#valid-e-mail-address
 	EmailRX = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+	PhoneRX = regexp.MustCompile(`^[\+\(\s.\-\/\d\)]{5,30}$`)
 )
 
 type Validator struct {

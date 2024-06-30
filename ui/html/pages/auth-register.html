@@ -41,7 +41,7 @@
                             <label class="font-bold" for="contact-value">
                                 Contact
                             </label>
-                            <p class="text-sm">
+                            <p class="text-sm mb-1">
                                 This is how other users will reach out to you to make connections. Click on the dropdown to select a different contact method.
                             </p>
                             <div class="flex">
@@ -58,68 +58,66 @@
                             </div>
                         </div>
                     </div>
-                    <div class="max-w-md w-full">
-                        <fieldset>
-                            <legend class="flex gap-4">
-                                <span class="font-bold">
-                                    Availability 
-                                </span>
-                                <span class="italic text-gray-600">
-                                    Optional
-                                </span>
-                            </legend>
-                            <p class="my-4">
-                                Entering your availability makes it easier to find friends with compatible schedules.
-                            </p>
-                            <article class="flex flex-wrap gap-x-4 gap-y-2">
-                                <table id="timetable" class="font-mono text-xs">
-                                    <thead>
+                    <div class="flex flex-col gap-2 max-w-md w-full">
+                        <header class="flex gap-4">
+                            <h2 class="font-bold">
+                                Availability 
+                            </h2>
+                            <span class="italic text-gray-600">
+                                Optional
+                            </span>
+                        </header>
+                        <p class="text-sm mb-2">
+                            Enter the days and times when you are available to play sports. This makes it easy to find other players with compatible schedules.
+                        </p>
+                        <article class="flex flex-wrap gap-x-4 gap-y-2">
+                            <table id="timetable" class="font-mono text-xs">
+                                <thead>
+                                    <tr>
+                                        <td></td>
+                                        {{range .Data.Times}}
+                                            <th class="w-24 p-1 font-normal" scope="col">
+                                                <button class="w-full p-1 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-green-200" type="button" aria-label="Toggle {{capitalize .Name}}">
+                                                    {{capitalize .Name}}
+                                                </button>
+                                            </th>
+                                        {{end}}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {{range $day := .Data.Days}}
                                         <tr>
-                                            <td></td>
-                                            {{range .Data.Times}}
-                                                <th class="w-24 p-1 font-normal" scope="col">
-                                                    <button class="w-full p-1 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-green-200" type="button" aria-label="Toggle {{capitalize .Name}}">
-                                                        {{capitalize .Name}}
-                                                    </button>
-                                                </th>
+                                            <th class="font-normal p-1" scope="row">
+                                                <button class="p-1 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-green-200" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{capitalize .Name}}">
+                                                    {{capitalize $day.Abbrev}}
+                                                </button>
+                                            </th>
+                                            {{range $time := $.Data.Times}}
+                                                <td class="border border-gray-600">
+                                                    <div class="flex">
+                                                        <input class="appearance-none w-full h-8 border-4 border-gray-100 bg-gray-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}" />
+                                                    </div>
+                                                </td>
                                             {{end}}
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        {{range $day := .Data.Days}}
-                                            <tr>
-                                                <th class="font-normal p-1" scope="row">
-                                                    <button class="p-1 rounded border border-1 border-gray-700 bg-gray-200 hover:bg-green-200" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{capitalize .Name}}">
-                                                        {{capitalize $day.Abbrev}}
-                                                    </button>
-                                                </th>
-                                                {{range $time := $.Data.Times}}
-                                                    <td class="border border-gray-600">
-                                                        <div class="flex">
-                                                            <input class="appearance-none w-full h-8 border-4 border-gray-100 bg-gray-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}" />
-                                                        </div>
-                                                    </td>
-                                                {{end}}
-                                            </tr>
-                                        {{end}}
-                                    </tbody>
-                                </table>
-                                <dl class="flex justify-between gap-2 w-full px-8 text-sm md:flex-col md:justify-start md:w-auto md:p-0">
-                                    <div>
-                                        <dt>Morning</dt>
-                                        <dd class="italic">08:00 - 12:00</dd>
-                                    </div>
-                                    <div>
-                                        <dt>Afternoon</dt>
-                                        <dd class="italic">12:00 - 4:00</dd>
-                                    </div>
-                                    <div>
-                                        <dt>Evening</dt>
-                                        <dd class="italic">4:00 - 8:00</dd>
-                                    </div>
-                                </dl>
-                            </article>
-                        </fieldset>
+                                    {{end}}
+                                </tbody>
+                            </table>
+                            <dl class="flex justify-between gap-2 w-full px-8 text-sm md:flex-col md:justify-start md:w-auto md:p-0">
+                                <div>
+                                    <dt>Morning</dt>
+                                    <dd class="italic">08:00 - 12:00</dd>
+                                </div>
+                                <div>
+                                    <dt>Afternoon</dt>
+                                    <dd class="italic">12:00 - 4:00</dd>
+                                </div>
+                                <div>
+                                    <dt>Evening</dt>
+                                    <dd class="italic">4:00 - 8:00</dd>
+                                </div>
+                            </dl>
+                        </article>
                     </div>
                 </div>
                 <div class="pt-8">
