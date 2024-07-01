@@ -1,5 +1,4 @@
 bin/
-tls/
 
 *.rest
 *.http
@@ -7,4 +6,3 @@ tls/
 *.http
 
 tailwindcss
-static/main.css

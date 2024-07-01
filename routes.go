@@ -21,7 +21,7 @@ func (app *application) routes() http.Handler {
 
 	r.Route("/", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
-		r.Use(app.noSurf)
+		//r.Use(app.noSurf)
 		r.Use(app.authenticate)
 
 		r.Get("/", app.handleRoot)
@@ -59,7 +59,7 @@ func (app *application) routes() http.Handler {
 		})
 
 		r.Route("/posts", func(r chi.Router) {
-			//r.Use(app.requireAuthentication)
+			r.Use(app.requireAuthentication)
 
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
@@ -87,22 +87,22 @@ func refresh(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) handleStatic() http.Handler {
-	if app.isProduction {
-		return http.FileServer(http.FS(ui.Files))
+	if app.isDevelopment {
+		fs := http.FileServer(http.Dir("./ui/static/"))
+
+		return http.StripPrefix("/static", fs)
 	}
 
-	fs := http.FileServer(http.Dir("./ui/static/"))
-	return http.StripPrefix("/static", fs)
+	return http.FileServer(http.FS(ui.Files))
 }
 
 func (app *application) handleFavicon(w http.ResponseWriter, r *http.Request) {
-	if app.isProduction {
-		http.ServeFileFS(w, r, ui.Files, "static/favicon.ico")
+	if app.isDevelopment {
+		http.ServeFile(w, r, "./ui/static/favicon.ico")
 
 		return
 	}
-
-	http.ServeFile(w, r, "./ui/static/favicon.ico")
+	http.ServeFileFS(w, r, ui.Files, "static/favicon.ico")
 }
 
 func (app *application) handleRoot(w http.ResponseWriter, r *http.Request) {

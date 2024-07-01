@@ -96,6 +96,15 @@ type authSignupForm struct {
 	validator.Validator
 }
 
+func getBaseURL(r *http.Request) string {
+	scheme := "http"
+	if r.TLS != nil {
+		scheme = "https"
+	}
+
+	return scheme + "://" + r.Host
+}
+
 func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Request) {
 	if app.isAuthenticated(r) {
 		clientError(w, http.StatusBadRequest)
@@ -156,16 +165,13 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	url := fmt.Sprintf("%s/auth/register?token=%s", app.url, token)
-	html := fmt.Sprintf("<p>Please follow the link below to create your account:</p>"+
-		"<a href=\"%s\">%s</a>", url, url)
-
-	err = app.sendMail(form.email, "Email verification", html)
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
+	link := fmt.Sprintf("%s/auth/register?token=%s", getBaseURL(r), token)
+	app.background(func() {
+		err = app.mailer.Send(form.email, "email_verification.tmpl", link)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+	})
 
 	err = app.verifications.Insert(token, form.email)
 	if err != nil {
@@ -433,16 +439,13 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	url := fmt.Sprintf("%s/auth/reset/update?token=%s", app.url, token)
-	html := fmt.Sprintf("<p>Please follow the link below to reset your password:</p>"+
-		"<a href=\"%s\">%s</a>", url, url)
-
-	err = app.sendMail(form.email, "Reset password", html)
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
+	link := fmt.Sprintf("%s/auth/reset/update?token=%s", getBaseURL(r), token)
+	app.background(func() {
+		err = app.mailer.Send(form.email, "reset_password.tmpl", link)
+		if err != nil {
+			app.errorLog.Println(err)
+		}
+	})
 
 	err = app.verifications.Insert(token, form.email)
 	if err != nil {

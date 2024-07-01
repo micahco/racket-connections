@@ -1,7 +1,13 @@
 include .env
 
-build:
-	go build -o ./bin/rc-server
+build: css-minify
+	go build -o ./bin/main
+
+deploy: build
+	rsync -a ./bin/ ${DO_USER}@${DO_HOST}:/home/${DO_USER}/racket-connections
+
+connect:
+	ssh ${DO_USER}@${DO_HOST}
 
 docker:
 	docker start racket-connections && sleep 1
@@ -22,21 +28,7 @@ css-minify:
 	./tailwindcss -i ./ui/input.css -o ./ui/static/main.css --minify
 
 run: docker pg-drop pg-init pg-sample
-	go run . \
-		-dsn=postgres://postgres:${RC_DB_PASS}@localhost:5432/postgres \
-		-smtp-host=${RC_SMTP_HOST} \
-		-smtp-pass=${RC_SMTP_PASS} \
-		-smtp-port=${RC_SMTP_PORT} \
-		-smtp-user=${RC_SMTP_USER} \
+	go run . -dev
 
 dev:
 	${MAKE} docker && ${MAKE} -j3 css run
-
-deploy: docker css-minify pg-init build
-	./bin/rc-server \
-		-dsn=postgres://postgres:${RC_DB_PASS}@localhost:5432/postgres \
-		-smtp-host=${RC_SMTP_HOST} \
-		-smtp-pass=${RC_SMTP_PASS} \
-		-smtp-port=${RC_SMTP_PORT} \
-		-smtp-user=${RC_SMTP_USER} \
-		-prod

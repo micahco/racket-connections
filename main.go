@@ -8,19 +8,19 @@ import (
 	"log"
 	"net/http"
 	"net/mail"
-	"net/smtp"
 	"os"
 	"time"
 
 	"github.com/alexedwards/scs/pgxstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/joho/godotenv"
+	"github.com/micahco/racket-connections/internal/mailer"
 	"github.com/micahco/racket-connections/internal/models"
 )
 
 type application struct {
-	url            string
-	isProduction   bool
+	isDevelopment  bool
 	errorLog       *log.Logger
 	infoLog        *log.Logger
 	posts          *models.PostModel
@@ -32,29 +32,26 @@ type application struct {
 	verifications  *models.VerificationModel
 	templateCache  map[string]*template.Template
 	sessionManager *scs.SessionManager
-	smtpClient     *smtp.Client
-	fromAddress    *mail.Address
+	mailer         *mailer.Mailer
 }
 
 func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 
-	addr := flag.String("addr", ":4000", "HTTP network address")
-	dsn := flag.String("dsn", "", "MySQL data source name")
-	smtpHost := flag.String("smtp-host", "", "SMTP hostname")
-	smtpPort := flag.String("smtp-port", "", "SMTP port")
-	smtpUser := flag.String("smtp-user", "", "SMTP username")
-	smtpPass := flag.String("smtp-pass", "", "SMTP password")
-	prod := flag.Bool("prod", false, "Production mode")
-
+	dev := flag.Bool("dev", false, "Development mode")
+	port := flag.String("port", "4000", "Listening address")
 	flag.Parse()
 
-	if *dsn == "" || *smtpHost == "" || *smtpPort == "" || *smtpUser == "" || *smtpPass == "" {
-		errorLog.Fatal("missing required flag")
+	if *dev {
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
 	}
 
-	pool, err := newPool(*dsn)
+	infoLog.Println("Connecting to database")
+	pool, err := newPool(os.Getenv("RC_DB_DSN"))
 	if err != nil {
 		errorLog.Fatal(err)
 	}
@@ -69,25 +66,23 @@ func main() {
 	sm.Store = pgxstore.New(pool)
 	sm.Lifetime = 12 * time.Hour
 
-	var sc *smtp.Client
-	if *prod {
-		sc, err = newSMTPClient(*smtpHost, *smtpPort, *smtpUser, *smtpPass)
-		if err != nil {
-			errorLog.Fatal(err)
-		}
-		defer sc.Close()
-	}
-
-	var url string
-	if *prod {
-		url = "https://localhost" + *addr
-	} else {
-		url = "http://localhost" + *addr
+	infoLog.Println("Connecting to SMTP")
+	m, err := mailer.New(
+		os.Getenv("RC_SMTP_HOST"),
+		os.Getenv("RC_SMTP_PORT"),
+		os.Getenv("RC_SMTP_USER"),
+		os.Getenv("RC_SMTP_PASS"),
+		&mail.Address{
+			Name:    "Racket Connections",
+			Address: "no-reply@rc.cowell.dev",
+		},
+	)
+	if err != nil {
+		errorLog.Fatal(err)
 	}
 
 	app := &application{
-		url:            url,
-		isProduction:   *prod,
+		isDevelopment:  *dev,
 		errorLog:       errorLog,
 		infoLog:        infoLog,
 		posts:          models.NewPostModel(pool),
@@ -99,28 +94,22 @@ func main() {
 		verifications:  models.NewVerificationModel(pool),
 		templateCache:  tc,
 		sessionManager: sm,
-		smtpClient:     sc,
-		fromAddress: &mail.Address{
-			Name:    "Racket Connections",
-			Address: *smtpUser,
-		},
+		mailer:         m,
 	}
 
 	gob.Register(FlashMessage{})
 
 	srv := &http.Server{
-		Addr:     *addr,
+		Addr:     ":" + *port,
 		ErrorLog: errorLog,
 		Handler:  app.routes(),
 	}
 
-	infoLog.Printf("Starting server: %s", app.url)
-	if app.isProduction {
-		err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
-	} else {
-		srv.ListenAndServe()
+	infoLog.Println("listening on", *port)
+	err = srv.ListenAndServe()
+	if err != nil {
+		errorLog.Fatal(err)
 	}
-	errorLog.Fatal(err)
 }
 
 func newPool(dsn string) (*pgxpool.Pool, error) {
@@ -134,7 +123,8 @@ func newPool(dsn string) (*pgxpool.Pool, error) {
 		return nil, err
 	}
 
-	if err := pool.Ping(context.Background()); err != nil {
+	err = pool.Ping(context.Background())
+	if err != nil {
 		return nil, err
 	}
 

@@ -131,17 +131,3 @@ VALUES
     ('advanced'),
     ('expert')
 ON CONFLICT (name_) DO NOTHING;
-
-/*
- * VIEWS
- */
-CREATE OR REPLACE VIEW v_post_numbered_ AS
-SELECT
-        *,
-        ROW_NUMBER() OVER (
-            PARTITION BY sport_id_
-            ORDER BY
-                id_ DESC
-        )
-    FROM
-        post_;

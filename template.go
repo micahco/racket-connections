@@ -34,7 +34,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		Data:            data,
 	}
 
-	if app.isProduction {
+	if !app.isDevelopment {
 		err := app.renderFromCache(w, status, page, td)
 		if err != nil {
 			app.serverError(w, err)
