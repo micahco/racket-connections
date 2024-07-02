@@ -11,10 +11,6 @@ type TimeslotModel struct {
 	pool *pgxpool.Pool
 }
 
-func NewTimeslotModel(pool *pgxpool.Pool) *TimeslotModel {
-	return &TimeslotModel{pool}
-}
-
 type DayOfWeek struct {
 	ID     int
 	Name   string

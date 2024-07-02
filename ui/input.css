@@ -11,26 +11,22 @@
     .border-b,
     .border-x,
     .border-y {
-        @apply border-gray-400;
+        @apply border-stone-400 dark:border-stone-700;
     }
 }
 
-:root {
-    color-scheme: light dark;
-}
-
 a {
-    @apply text-blue-600 hover:underline;
+    @apply text-blue-600 hover:underline dark:text-blue-400;
 }
 
 .flash-info {
-    @apply border-blue-600 text-blue-600 bg-blue-50;
+    @apply border-blue-600 text-blue-600 bg-blue-50 dark:bg-blue-950 dark:text-blue-100;
 }
 
 .flash-success {
-    @apply border-green-600 text-green-600 bg-green-50;
+    @apply border-green-600 text-green-600 bg-green-50 dark:bg-green-950 dark:text-green-100;
 }
 
 .flash-error {
-    @apply border-red-600 text-red-600 bg-red-50;
+    @apply border-red-600 text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-100;
 }

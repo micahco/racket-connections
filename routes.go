@@ -13,7 +13,7 @@ func (app *application) routes() http.Handler {
 	r.Use(app.logRequests)
 	r.Use(secureHeaders)
 
-	r.NotFound(handleNotFound)
+	r.NotFound(app.handleNotFound)
 
 	r.Handle("/static/*", app.handleStatic())
 
@@ -21,7 +21,7 @@ func (app *application) routes() http.Handler {
 
 	r.Route("/", func(r chi.Router) {
 		r.Use(app.sessionManager.LoadAndSave)
-		//r.Use(app.noSurf)
+		r.Use(app.noSurf)
 		r.Use(app.authenticate)
 
 		r.Get("/", app.handleRoot)
@@ -59,16 +59,13 @@ func (app *application) routes() http.Handler {
 		})
 
 		r.Route("/posts", func(r chi.Router) {
-			r.Use(app.requireAuthentication)
+			//r.Use(app.requireAuthentication)
 
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
 
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/*", app.handlePostsIdGet)
-
-				r.Get("/edit", app.handlePostsIdEditGet)
-				r.Post("/edit", app.handlePostsIdEditPost)
 
 				r.Get("/delete", app.handlePostsIdDeleteGet)
 				r.Post("/delete", app.handlePostsIdDeletePost)
@@ -84,6 +81,10 @@ func (app *application) routes() http.Handler {
 
 func refresh(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+}
+
+func (app *application) handleNotFound(w http.ResponseWriter, r *http.Request) {
+	app.renderError(w, r, http.StatusNotFound, "")
 }
 
 func (app *application) handleStatic() http.Handler {

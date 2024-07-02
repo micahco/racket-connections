@@ -1,0 +1,58 @@
+{{define "title"}}Delete Post - {{.Data.Post.UserName}}{{end}}
+
+{{define "main"}}
+    {{template "header"}}
+    <article class="my-12">
+        <h1 class="text-2xl font-bold pb-4">
+            Delete Post
+        </h1>
+        <div class="inline-flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-4 p-2 border">
+            <div class="flex sm:flex-col">
+                <span class="w-16 sm:w-fit text-stone-600">
+                    Name
+                </span>
+                <span>
+                    {{capitalize .Data.Post.UserName}}
+                </span>
+            </div>
+            <div class="flex sm:flex-col">
+                <span class="w-16 sm:w-fit text-stone-600">
+                    Sport
+                </span>
+                <span>
+                    {{capitalize .Data.Post.Sport}}
+                </span>
+            </div>
+            <div class="flex sm:flex-col">
+                <span class="w-16 sm:w-fit text-stone-600">
+                    Skill
+                </span>
+                <span>
+                    {{capitalize .Data.Post.SkillLevel}}
+                </span>
+            </div>
+            <div class="flex sm:flex-col">
+                <span class="w-16 sm:w-fit text-stone-600">
+                    Date
+                </span>
+                <span>
+                    {{dateFormat .Data.Post.CreatedAt}}
+                </span>
+            </div>
+        </div>
+        <p class="mt-8 mb-2">
+            Are you sure you want to delete this post?
+        </p>
+        <form action="/posts/{{.Data.Post.ID}}/delete" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div class="flex gap-8">
+                <button class="rounded hover:ring-2 text-red-600 ring-red-600">
+                    Confirm 
+                </button>
+                <a href="/posts/{{.Data.Post.ID}}">Cancel</a>
+            </div>
+        </form>
+    </article>
+{{end}}
+
+{{define "scripts"}}{{end}}

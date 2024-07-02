@@ -12,10 +12,6 @@ type ContactModel struct {
 	pool *pgxpool.Pool
 }
 
-func NewContactModel(pool *pgxpool.Pool) *ContactModel {
-	return &ContactModel{pool}
-}
-
 func (m *ContactModel) Insert(value string, userID, methodID int) error {
 	sql := `INSERT INTO contact_ 
 		(value_, user_id_, contact_method_id_)

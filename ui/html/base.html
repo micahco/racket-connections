@@ -7,7 +7,7 @@
     <title>{{template "title" .}}</title>
     <link rel="stylesheet" href="/static/main.css">
 </head>
-<body class="max-w-5xl mx-auto px-4 pb-12">
+<body class="max-w-5xl mx-auto px-4 pb-12 bg-white text-black  dark:bg-stone-900 dark:text-stone-300">
     <div class="pt-8 pb-8">
         {{if .Flash.Message}}
             <div role="status" class="p-4 w-full text-center border rounded-md flash-{{.Flash.Type}}">

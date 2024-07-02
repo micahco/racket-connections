@@ -15,10 +15,6 @@ type UserModel struct {
 	pool *pgxpool.Pool
 }
 
-func NewUserModel(pool *pgxpool.Pool) *UserModel {
-	return &UserModel{pool}
-}
-
 type User struct {
 	ID           int
 	Name         string

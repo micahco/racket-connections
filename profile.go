@@ -16,36 +16,36 @@ type profileData struct {
 }
 
 func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request) {
-	userID, err := app.getSessionUserID(r)
+	suid, err := app.getSessionUserID(r)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
-	p, err := app.users.GetProfile(userID)
+	p, err := app.models.User.GetProfile(suid)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
-	c, err := app.contacts.All(userID)
+	c, err := app.models.Contact.All(suid)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
-	timeslots, err := app.timeslots.User(userID)
+	timeslots, err := app.models.Timeslot.User(suid)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
-	days, _ := app.timeslots.Days()
-	times, _ := app.timeslots.Times()
+	days, _ := app.models.Timeslot.Days()
+	times, _ := app.models.Timeslot.Times()
 
 	data := profileData{
 		Name:      p.Name,

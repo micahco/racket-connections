@@ -11,10 +11,6 @@ type SkillLevelModel struct {
 	pool *pgxpool.Pool
 }
 
-func NewSkillLevelModel(pool *pgxpool.Pool) *SkillLevelModel {
-	return &SkillLevelModel{pool}
-}
-
 type SkillLevel struct {
 	ID   int
 	Name string

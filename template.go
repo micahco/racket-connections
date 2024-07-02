@@ -37,7 +37,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	if !app.isDevelopment {
 		err := app.renderFromCache(w, status, page, td)
 		if err != nil {
-			app.serverError(w, err)
+			app.serverError(w, r, err)
 		}
 
 		return
@@ -45,28 +45,28 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 
 	t, err := template.ParseFiles("./ui/html/base.html")
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
 	t, err = t.Funcs(functions).ParseGlob("./ui/html/partials/*.html")
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
 	t, err = t.ParseFiles("./ui/html/pages/" + page)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
 	err = t.ExecuteTemplate(w, "base", td)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}

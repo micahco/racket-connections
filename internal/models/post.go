@@ -14,10 +14,6 @@ type PostModel struct {
 	pool *pgxpool.Pool
 }
 
-func NewPostModel(pool *pgxpool.Pool) *PostModel {
-	return &PostModel{pool}
-}
-
 type Post struct {
 	ID           int
 	Comment      string
@@ -91,7 +87,7 @@ func scanPostCard(row pgx.CollectableRow) (*PostCard, error) {
 	return &p, err
 }
 
-func (m *PostModel) Fetch(sports []string, timeslots []Timeslot, limit int, offset int) ([]*PostCard, error) {
+func (m *PostModel) Fetch(sports []string, timeslots []Timeslot, limit int, offset int) (int64, []*PostCard, error) {
 	sql := `SELECT DISTINCT
 				post_.id_,
 				post_.created_at_,
@@ -141,6 +137,12 @@ func (m *PostModel) Fetch(sports []string, timeslots []Timeslot, limit int, offs
 		}
 	}
 
+	// First query to count number of total rows with filters
+	ct, err := m.pool.Exec(context.Background(), sql+";", args...)
+	if err != nil {
+		return -1, nil, err
+	}
+
 	sql += "\nORDER BY post_.id_ DESC\n"
 
 	idx := len(args)
@@ -148,12 +150,13 @@ func (m *PostModel) Fetch(sports []string, timeslots []Timeslot, limit int, offs
 	args = append(args, limit, offset)
 
 	rows, err := m.pool.Query(context.Background(), sql, args...)
-
 	if err != nil {
-		return nil, err
+		return -1, nil, err
 	}
 
-	return pgx.CollectRows(rows, scanPostCard)
+	p, err := pgx.CollectRows(rows, scanPostCard)
+
+	return ct.RowsAffected(), p, err
 }
 
 type PostDetails struct {

@@ -11,10 +11,6 @@ type SportModel struct {
 	pool *pgxpool.Pool
 }
 
-func NewSportModel(pool *pgxpool.Pool) *SportModel {
-	return &SportModel{pool}
-}
-
 type Sport struct {
 	ID   int
 	Name string

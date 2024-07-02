@@ -22,13 +22,16 @@ type postsQuery struct {
 }
 
 type postsData struct {
-	Query    postsQuery
-	Days     []*models.DayOfWeek
-	Times    []*models.TimeOfDay
-	Sports   []*models.Sport
-	Posts    []*models.PostCard
-	NextPage string
-	PrevPage string
+	Query     postsQuery
+	Days      []*models.DayOfWeek
+	Times     []*models.TimeOfDay
+	Sports    []*models.Sport
+	Posts     []*models.PostCard
+	PageStart int
+	PageEnd   int
+	PageCount int
+	NextPage  string
+	PrevPage  string
 }
 
 func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
@@ -47,9 +50,9 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 		Timeslot: make([]models.Timeslot, 0),
 	}
 
-	days, _ := app.timeslots.Days()
-	times, _ := app.timeslots.Times()
-	s, _ := app.sports.All()
+	days, _ := app.models.Timeslot.Days()
+	times, _ := app.models.Timeslot.Times()
+	s, _ := app.models.Sport.All()
 
 	for _, d := range days {
 		for _, t := range times {
@@ -65,9 +68,9 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 
 	limit := PAGE_SIZE + 1
 	offset := (page - 1) * PAGE_SIZE
-	p, err := app.posts.Fetch(q.Sport, q.Timeslot, limit, offset)
+	c, p, err := app.models.Post.Fetch(q.Sport, q.Timeslot, limit, offset)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
@@ -87,14 +90,24 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 		prevPage = fmt.Sprintf("/posts?%s", q.Encode())
 	}
 
+	count := int(c)
+	start := offset + 1
+	end := offset + PAGE_SIZE
+	if end > count {
+		end = count
+	}
+
 	data := postsData{
-		Query:    q,
-		Days:     days,
-		Times:    times,
-		Sports:   s,
-		Posts:    p,
-		NextPage: nextPage,
-		PrevPage: prevPage,
+		Query:     q,
+		Days:      days,
+		Times:     times,
+		Sports:    s,
+		Posts:     p,
+		NextPage:  nextPage,
+		PrevPage:  prevPage,
+		PageCount: count,
+		PageStart: start,
+		PageEnd:   end,
 	}
 
 	app.render(w, r, http.StatusOK, "posts.html", data)
@@ -110,85 +123,45 @@ type postData struct {
 	Days      []*models.DayOfWeek
 	Times     []*models.TimeOfDay
 	Timeslots []*models.Timeslot
+	IsOwner   bool
 }
 
 func (app *application) handlePostsIdGet(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	if idParam == "" {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	id, err := strconv.Atoi(idParam)
-	if err != nil {
-		clientError(w, http.StatusBadRequest)
-
-		return
-	}
-
-	p, err := app.posts.GetDetails(id)
-	if err != nil {
-		if errors.Is(err, models.ErrNoRecord) {
-			clientError(w, http.StatusNotFound)
-		} else {
-			app.serverError(w, err)
-		}
-
-		return
-	}
-
-	c, err := app.contacts.All(p.UserID)
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	timeslots, err := app.timeslots.User(p.UserID)
-	if err != nil {
-		app.serverError(w, err)
-
-		return
-	}
-
-	d, _ := app.timeslots.Days()
-	t, _ := app.timeslots.Times()
-
-	data := postData{
-		Post:      p,
-		Contacts:  c,
-		Days:      d,
-		Times:     t,
-		Timeslots: timeslots,
-	}
-
-	app.render(w, r, http.StatusOK, "post-details.html", data)
-}
-
-func (app *application) handlePostsIdEditGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "edit post")
-}
-
-func (app *application) handlePostsIdEditPost(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "edit post")
-}
-
-func (app *application) handlePostsIdDeleteGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "delete post")
-}
-
-func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.Request) {
-	idParam := chi.URLParam(r, "id")
-	if idParam == "" {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
 
 	postID, err := strconv.Atoi(idParam)
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
+
+		return
+	}
+
+	p, err := app.models.Post.GetDetails(postID)
+	if err != nil {
+		if errors.Is(err, models.ErrNoRecord) {
+			app.renderError(w, r, http.StatusNotFound, "")
+		} else {
+			app.serverError(w, r, err)
+		}
+
+		return
+	}
+
+	c, err := app.models.Contact.All(p.UserID)
+	if err != nil {
+		app.serverError(w, r, err)
+
+		return
+	}
+
+	timeslots, err := app.models.Timeslot.User(p.UserID)
+	if err != nil {
+		app.serverError(w, r, err)
 
 		return
 	}
@@ -200,14 +173,93 @@ func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	userID, err := app.posts.GetUserID(postID)
+	d, _ := app.models.Timeslot.Days()
+	t, _ := app.models.Timeslot.Times()
+
+	data := postData{
+		Post:      p,
+		Contacts:  c,
+		Days:      d,
+		Times:     t,
+		Timeslots: timeslots,
+		IsOwner:   suid == p.UserID,
+	}
+
+	app.render(w, r, http.StatusOK, "post-details.html", data)
+}
+
+type postDeleteData struct {
+	Post *models.PostDetails
+}
+
+func (app *application) handlePostsIdDeleteGet(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	if idParam == "" {
+		app.renderError(w, r, http.StatusBadRequest, "")
+
+		return
+	}
+
+	postID, err := strconv.Atoi(idParam)
+	if err != nil {
+		fmt.Println(2)
+		app.renderError(w, r, http.StatusBadRequest, "")
+
+		return
+	}
+
+	p, err := app.models.Post.GetDetails(postID)
+	if err != nil {
+		fmt.Println(3)
+		app.renderError(w, r, http.StatusBadRequest, "")
+
+		return
+	}
+
+	suid, err := app.getSessionUserID(r)
+	if err != nil || suid != p.UserID {
+		unauthorizedError(w)
+
+		return
+	}
+
+	data := postDeleteData{
+		Post: p,
+	}
+
+	app.render(w, r, http.StatusOK, "post-delete.html", data)
+}
+
+func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	if idParam == "" {
+		app.renderError(w, r, http.StatusBadRequest, "")
+
+		return
+	}
+
+	postID, err := strconv.Atoi(idParam)
+	if err != nil {
+		app.renderError(w, r, http.StatusBadRequest, "")
+
+		return
+	}
+
+	userID, err := app.models.Post.GetUserID(postID)
+	if err != nil {
+		app.renderError(w, r, http.StatusBadRequest, "")
+
+		return
+	}
+
+	suid, err := app.getSessionUserID(r)
 	if err != nil || suid != userID {
 		unauthorizedError(w)
 
 		return
 	}
 
-	app.posts.Delete(postID)
+	app.models.Post.Delete(postID)
 
 	f := FlashMessage{
 		Type:    FlashSuccess,
@@ -224,16 +276,16 @@ type newPostData struct {
 }
 
 func (app *application) handlePostsNewGet(w http.ResponseWriter, r *http.Request) {
-	sports, err := app.sports.All()
+	sports, err := app.models.Sport.All()
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
-	skills, err := app.skills.All()
+	skills, err := app.models.Skill.All()
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
@@ -254,7 +306,7 @@ type newPostForm struct {
 }
 
 func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Request) {
-	userID, err := app.getSessionUserID(r)
+	suid, err := app.getSessionUserID(r)
 	if err != nil {
 		unauthorizedError(w)
 
@@ -263,30 +315,30 @@ func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Reques
 
 	err = r.ParseForm()
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
 
 	sportID, err := strconv.Atoi(r.Form.Get("sport"))
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
 
 	// Check if user already has post with sport
-	postID, err := app.posts.GetID(userID, sportID)
+	postID, err := app.models.Post.GetID(suid, sportID)
 	if err != nil && !errors.Is(err, models.ErrNoRecord) {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
 	if postID != 0 {
 		f := FlashMessage{
-			Type:    FlashInfo,
-			Message: "Already have post for sport.",
+			Type:    FlashError,
+			Message: "Unable to create post. You are only allowed to create one post per sport.",
 		}
 		app.flash(r, f)
 
@@ -298,7 +350,7 @@ func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Reques
 
 	skill, err := strconv.Atoi(r.Form.Get("skill-level"))
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -319,9 +371,9 @@ func (app *application) handlePostsNewPost(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	postID, err = app.posts.Insert(userID, form.sport, form.skillLevel, form.comment)
+	postID, err = app.models.Post.Insert(suid, form.sport, form.skillLevel, form.comment)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}

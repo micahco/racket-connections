@@ -23,14 +23,14 @@ type authLoginForm struct {
 
 func (app *application) handleAuthLoginPost(w http.ResponseWriter, r *http.Request) {
 	if app.isAuthenticated(r) {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
 
 	err := r.ParseForm()
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -50,12 +50,12 @@ func (app *application) handleAuthLoginPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	id, err := app.users.Authenticate(form.email, form.password)
+	id, err := app.models.User.Authenticate(form.email, form.password)
 	if err != nil {
 		if errors.Is(err, models.ErrInvalidCredentials) {
 			unauthorizedError(w)
 		} else {
-			app.serverError(w, err)
+			app.serverError(w, r, err)
 		}
 
 		return
@@ -63,7 +63,7 @@ func (app *application) handleAuthLoginPost(w http.ResponseWriter, r *http.Reque
 
 	err = app.login(r, id)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
@@ -74,7 +74,7 @@ func (app *application) handleAuthLoginPost(w http.ResponseWriter, r *http.Reque
 func (app *application) handleAuthLogoutPost(w http.ResponseWriter, r *http.Request) {
 	err := app.logout(r)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 		return
 	}
 
@@ -96,25 +96,16 @@ type authSignupForm struct {
 	validator.Validator
 }
 
-func getBaseURL(r *http.Request) string {
-	scheme := "http"
-	if r.TLS != nil {
-		scheme = "https"
-	}
-
-	return scheme + "://" + r.Host
-}
-
 func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Request) {
 	if app.isAuthenticated(r) {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
 
 	err := r.ParseForm()
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -133,9 +124,9 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Check if link verification has already been created
-	v, err := app.verifications.Get(form.email)
+	v, err := app.models.Verification.Get(form.email)
 	if err != nil && err != models.ErrNoRecord {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
@@ -160,12 +151,12 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 
 	token, err := crypto.GenerateRandomString(32)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
-	link := fmt.Sprintf("%s/auth/register?token=%s", getBaseURL(r), token)
+	link := fmt.Sprintf("%s/auth/register?token=%s", app.baseURL, token)
 	app.background(func() {
 		err = app.mailer.Send(form.email, "email_verification.tmpl", link)
 		if err != nil {
@@ -173,9 +164,9 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 		}
 	})
 
-	err = app.verifications.Insert(token, form.email)
+	err = app.models.Verification.Insert(token, form.email)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
@@ -198,7 +189,7 @@ type authRegisterData struct {
 
 func (app *application) handleAuthRegisterGet(w http.ResponseWriter, r *http.Request) {
 	if app.isAuthenticated(r) {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -212,9 +203,9 @@ func (app *application) handleAuthRegisterGet(w http.ResponseWriter, r *http.Req
 
 	app.sessionManager.Put(r.Context(), verificationTokenSessionKey, queryToken)
 
-	m, _ := app.contacts.Methods()
-	d, _ := app.timeslots.Days()
-	t, _ := app.timeslots.Times()
+	m, _ := app.models.Contact.Methods()
+	d, _ := app.models.Timeslot.Days()
+	t, _ := app.models.Timeslot.Times()
 
 	exists := app.sessionManager.Exists(r.Context(), verificationEmailSessionKey)
 
@@ -244,7 +235,7 @@ var ExpiredTokenFlash = FlashMessage{
 
 func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Request) {
 	if app.isAuthenticated(r) {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -252,7 +243,7 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 	// Validate form
 	err := r.ParseForm()
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -289,7 +280,7 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 	case "other":
 		// cleanse for anything malicous
 	default:
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -308,7 +299,7 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	err = app.verifications.Verify(token, email)
+	err = app.models.Verification.Verify(token, email)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			unauthorizedError(w)
@@ -317,51 +308,51 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 		} else {
-			app.serverError(w, err)
+			app.serverError(w, r, err)
 		}
 
 		return
 	}
 
-	err = app.verifications.Purge(email)
+	err = app.models.Verification.Purge(email)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
 	// Insert data
-	userID, err := app.users.Insert(form.name, email, form.password)
+	userID, err := app.models.User.Insert(form.name, email, form.password)
 	if err != nil {
 		if errors.Is(err, models.ErrDuplicateEmail) {
 			unauthorizedError(w)
 		} else {
-			app.serverError(w, err)
+			app.serverError(w, r, err)
 		}
 
 		return
 	}
 
-	methodID, err := app.contacts.MethodID(form.contactMethod)
+	methodID, err := app.models.Contact.MethodID(form.contactMethod)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 	}
 
-	err = app.contacts.Insert(form.contactValue, userID, methodID)
+	err = app.models.Contact.Insert(form.contactValue, userID, methodID)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 	}
 
 	// Parse timetable and insert data
-	days, _ := app.timeslots.Days()
-	times, _ := app.timeslots.Times()
+	days, _ := app.models.Timeslot.Days()
+	times, _ := app.models.Timeslot.Times()
 	for _, d := range days {
 		for _, t := range times {
 			key := fmt.Sprintf("%s-%s", d.Abbrev, t.Abbrev)
 			if r.Form.Get(key) == "on" {
-				err = app.timeslots.Insert(userID, d.ID, t.ID)
+				err = app.models.Timeslot.Insert(userID, d.ID, t.ID)
 				if err != nil {
-					app.serverError(w, err)
+					app.serverError(w, r, err)
 				}
 			}
 		}
@@ -371,7 +362,7 @@ func (app *application) handleAuthRegisterPost(w http.ResponseWriter, r *http.Re
 	app.sessionManager.Clear(r.Context())
 	err = app.login(r, userID)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
@@ -397,7 +388,7 @@ type authResetForm struct {
 func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -413,9 +404,9 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	exists, err := app.users.ExistsEmail(form.email)
+	exists, err := app.models.User.ExistsEmail(form.email)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 		return
 	}
 
@@ -434,12 +425,12 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 
 	token, err := crypto.GenerateRandomString(32)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
-	link := fmt.Sprintf("%s/auth/reset/update?token=%s", getBaseURL(r), token)
+	link := fmt.Sprintf("%s/auth/reset/update?token=%s", app.baseURL, token)
 	app.background(func() {
 		err = app.mailer.Send(form.email, "reset_password.tmpl", link)
 		if err != nil {
@@ -447,9 +438,9 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 		}
 	})
 
-	err = app.verifications.Insert(token, form.email)
+	err = app.models.Verification.Insert(token, form.email)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
@@ -495,7 +486,7 @@ type authResetUpdateForm struct {
 func (app *application) handleAuthResetUpdatePost(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		clientError(w, http.StatusBadRequest)
+		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
 	}
@@ -530,7 +521,7 @@ func (app *application) handleAuthResetUpdatePost(w http.ResponseWriter, r *http
 		return
 	}
 
-	err = app.verifications.Verify(token, email)
+	err = app.models.Verification.Verify(token, email)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			unauthorizedError(w)
@@ -539,22 +530,22 @@ func (app *application) handleAuthResetUpdatePost(w http.ResponseWriter, r *http
 
 			http.Redirect(w, r, "/auth/reset", http.StatusSeeOther)
 		} else {
-			app.serverError(w, err)
+			app.serverError(w, r, err)
 		}
 
 		return
 	}
 
-	err = app.verifications.Purge(email)
+	err = app.models.Verification.Purge(email)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}
 
-	err = app.users.UpdatePassword(email, form.password)
+	err = app.models.User.UpdatePassword(email, form.password)
 	if err != nil {
-		app.serverError(w, err)
+		app.serverError(w, r, err)
 
 		return
 	}

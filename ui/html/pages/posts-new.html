@@ -15,7 +15,7 @@
                             <label class="w-1/2 sm:w-fit text-right" for="sport">
                                 Sport:
                             </label>
-                            <select class="w-1/2 sm:w-fit p-2 text-sm border rounded bg-gray-100 border-gray-400 hover:border-gray-700" id="contact-method" id="sport" name="sport">
+                            <select class="w-1/2 sm:w-fit p-2 text-sm border rounded bg-stone-100 border-stone-400 hover:border-stone-700 dark:bg-stone-800 dark:hover:border-stone-500" id="contact-method" id="sport" name="sport">
                                 {{range .Data.Sports}}
                                     <option value="{{.ID}}">{{capitalize .Name}}</option>
                                 {{end}}
@@ -25,7 +25,7 @@
                             <label class="w-1/2 sm:w-fit text-right" for="skill-level">
                                 Skill Level:
                             </label>
-                            <select class="w-1/2 sm:w-fit p-2 text-sm border rounded bg-gray-100 border-gray-400 hover:border-gray-700" id="skill-level" name="skill-level">
+                            <select class="w-1/2 sm:w-fit p-2 text-sm border rounded bg-stone-100 border-stone-400 hover:border-stone-700 dark:bg-stone-800 dark:hover:border-stone-500" id="skill-level" name="skill-level">
                                 {{range .Data.Skills}}
                                     <option value="{{.ID}}">{{capitalize .Name}}</option>
                                 {{end}}
@@ -37,13 +37,13 @@
                             <span>
                                 Comment
                             </span>
-                            <span class="italic text-gray-600">
+                            <span class="italic text-stone-600">
                                 Optional
                             </span>
                         </label>
-                        <textarea class="p-2 border rounded" name="comment" id="comment" placeholder="Challenge me!" rows="5" cols="33"></textarea>
+                        <textarea class="p-2 border rounded dark:bg-stone-800" name="comment" id="comment" placeholder="Challenge me!" rows="5" cols="33"></textarea>
                     </div>
-                    <button class="w-full sm:w-32 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-gray-700">
+                    <button class="w-full sm:w-32 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-stone-700">
                         Create Post
                     </button>
                 </div>

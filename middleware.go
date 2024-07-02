@@ -11,11 +11,11 @@ import (
 func (app *application) recovery(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
-			if r := recover(); r != nil {
+			if rvr := recover(); rvr != nil {
 
 				w.Header().Set("Connection", "close")
 
-				app.serverError(w, fmt.Errorf("PANIC\t%s", r))
+				app.serverError(w, r, fmt.Errorf("PANIC\t%s", rvr))
 			}
 		}()
 
@@ -73,9 +73,9 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 			return
 		}
 
-		exists, err := app.users.Exists(id)
+		exists, err := app.models.User.Exists(id)
 		if err != nil {
-			app.serverError(w, err)
+			app.serverError(w, r, err)
 			return
 		}
 

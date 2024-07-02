@@ -17,10 +17,6 @@ type VerificationModel struct {
 	pool *pgxpool.Pool
 }
 
-func NewVerificationModel(pool *pgxpool.Pool) *VerificationModel {
-	return &VerificationModel{pool}
-}
-
 type Verification struct {
 	Token     string
 	Email     string

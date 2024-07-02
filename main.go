@@ -21,15 +21,10 @@ import (
 
 type application struct {
 	isDevelopment  bool
+	baseURL        string
 	errorLog       *log.Logger
 	infoLog        *log.Logger
-	posts          *models.PostModel
-	skills         *models.SkillLevelModel
-	sports         *models.SportModel
-	users          *models.UserModel
-	contacts       *models.ContactModel
-	timeslots      *models.TimeslotModel
-	verifications  *models.VerificationModel
+	models         models.Models
 	templateCache  map[string]*template.Template
 	sessionManager *scs.SessionManager
 	mailer         *mailer.Mailer
@@ -50,7 +45,6 @@ func main() {
 		}
 	}
 
-	infoLog.Println("Connecting to database")
 	pool, err := newPool(os.Getenv("RC_DB_DSN"))
 	if err != nil {
 		errorLog.Fatal(err)
@@ -66,7 +60,6 @@ func main() {
 	sm.Store = pgxstore.New(pool)
 	sm.Lifetime = 12 * time.Hour
 
-	infoLog.Println("Connecting to SMTP")
 	m, err := mailer.New(
 		os.Getenv("RC_SMTP_HOST"),
 		os.Getenv("RC_SMTP_PORT"),
@@ -83,15 +76,10 @@ func main() {
 
 	app := &application{
 		isDevelopment:  *dev,
+		baseURL:        os.Getenv("RC_BASE_URL"),
 		errorLog:       errorLog,
 		infoLog:        infoLog,
-		posts:          models.NewPostModel(pool),
-		skills:         models.NewSkillLevelModel(pool),
-		sports:         models.NewSportModel(pool),
-		users:          models.NewUserModel(pool),
-		contacts:       models.NewContactModel(pool),
-		timeslots:      models.NewTimeslotModel(pool),
-		verifications:  models.NewVerificationModel(pool),
+		models:         models.New(pool),
 		templateCache:  tc,
 		sessionManager: sm,
 		mailer:         m,

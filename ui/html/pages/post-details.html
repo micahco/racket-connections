@@ -3,14 +3,21 @@
 {{define "main"}}
     {{template "header" .}}
     <article class="my-12">
-        <h1 class="text-xl font-bold">
-            Post Details
-        </h1>
-        <div class="flex flex-wrap gap-x-16 gap-y-4 mt-4">
-            <div class="max-w-md w-full">
+        <header class="flex items-end gap-x-16 gap-y-4 pb-4">
+            <h1 class="text-2xl font-bold">
+                Post Details
+            </h1>
+            {{if .Data.IsOwner}}
+                <a class="text-red-600" href="/posts/{{.Data.Post.ID}}/delete">
+                    Delete
+                </a>
+            {{end}}
+        </header>
+        <div class="flex flex-wrap gap-x-16 gap-y-8 mt-4">
+            <div>
                 <div class="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-4">
                     <div class="flex sm:flex-col">
-                        <span class="w-16 sm:w-fit text-gray-600">
+                        <span class="w-16 sm:w-fit text-stone-600">
                             Name
                         </span>
                         <span>
@@ -18,7 +25,7 @@
                         </span>
                     </div>
                     <div class="flex sm:flex-col">
-                        <span class="w-16 sm:w-fit text-gray-600">
+                        <span class="w-16 sm:w-fit text-stone-600">
                             Sport
                         </span>
                         <span>
@@ -26,7 +33,7 @@
                         </span>
                     </div>
                     <div class="flex sm:flex-col">
-                        <span class="w-16 sm:w-fit text-gray-600">
+                        <span class="w-16 sm:w-fit text-stone-600">
                             Skill
                         </span>
                         <span>
@@ -34,7 +41,7 @@
                         </span>
                     </div>
                     <div class="flex sm:flex-col">
-                        <span class="w-16 sm:w-fit text-gray-600">
+                        <span class="w-16 sm:w-fit text-stone-600">
                             Date
                         </span>
                         <span>
@@ -44,7 +51,7 @@
                 </div>
                 {{with .Data.Post.Comment}}
                     <section class="pt-4">
-                        <h2 class="pb-2 text-gray-600">
+                        <h2 class="pb-2 text-stone-600">
                             Comment
                         </h2>
                         <p class="px-2 py-4 border rounded">
@@ -52,12 +59,12 @@
                         </p>
                     </section>
                 {{end}}
-                <dialog class="max-w-sm w-full p-8 border-2 rounded shadow-lg backdrop:bg-black/50">
-                    <header class="flex justify-between items-end pb-4">
-                        <h2 class="font-bold">
+                <dialog class="max-w-sm w-full p-8 border-2 rounded shadow-lg border-stone-200 backdrop:bg-black/50 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700">
+                    <header class="flex justify-between items-end pb-6">
+                        <h2 class="text-xl font-bold">
                             Contact Information
                         </h2>
-                        <button class="rounded focus:ring text-gray-500 hover:underline" autofocus>
+                        <button class="rounded focus:ring text-stone-500 hover:underline dark:text-stone-300" autofocus>
                             Close
                         </button>
                     </header>
@@ -80,13 +87,13 @@
                         {{end}}
                     </ul>
                 </dialog>
-                <button class="p-2 mt-8 text-sm rounded border border-1 border-gray-700 bg-gray-200 hover:bg-gray-300">
+                <button class="p-2 mt-8 text-sm rounded border border-1 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
                     Show Contact Information
                 </button>                  
             </div>
             <section>
-                <h2 class="pb-2">
-                    Availability:
+                <h2 class="pb-2 text-stone-600">
+                    Availability
                 </h2>
                 <table class="font-mono text-xs">
                     <thead>
@@ -110,7 +117,7 @@
                                     </span>
                                 </th>
                                 {{range $time := $.Data.Times}}
-                                    <td class="text-center border border-gray-600" title="{{capitalize $day.Name}} {{$time.Name}}">
+                                    <td class="text-center border border-stone-600" title="{{capitalize $day.Name}} {{$time.Name}}">
                                         {{range $timeslot := $.Data.Timeslots}}
                                             {{if and (eq $timeslot.Day.ID $day.ID) (eq $timeslot.Time.ID $time.ID)}}
                                                 ✔️
