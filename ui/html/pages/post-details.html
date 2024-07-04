@@ -1,68 +1,112 @@
 {{define "title"}}Post Details - {{.Data.Post.UserName}}{{end}}
 
 {{define "main"}}
-    {{template "header" .}}
-    <article class="my-12">
-        <header class="flex items-end gap-x-16 gap-y-4 pb-4">
-            <h1 class="text-2xl font-bold">
+    <main class="flex flex-col gap-8 max-w-sm w-full mt-8">
+        <header class="flex justify-between items-end gap-x-16 gap-y-4">
+            <h1 class="mb-0">
                 Post Details
             </h1>
             {{if .Data.IsOwner}}
                 <a class="text-red-600" href="/posts/{{.Data.Post.ID}}/delete">
-                    Delete
+                    Delete Post
                 </a>
             {{end}}
         </header>
-        <div class="flex flex-wrap gap-x-16 gap-y-8 mt-4">
-            <div>
-                <div class="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-4">
-                    <div class="flex sm:flex-col">
-                        <span class="w-16 sm:w-fit text-stone-600">
-                            Name
-                        </span>
-                        <span>
-                            {{capitalize .Data.Post.UserName}}
-                        </span>
-                    </div>
-                    <div class="flex sm:flex-col">
-                        <span class="w-16 sm:w-fit text-stone-600">
-                            Sport
-                        </span>
-                        <span>
-                            {{capitalize .Data.Post.Sport}}
-                        </span>
-                    </div>
-                    <div class="flex sm:flex-col">
-                        <span class="w-16 sm:w-fit text-stone-600">
-                            Skill
-                        </span>
-                        <span>
-                            {{capitalize .Data.Post.SkillLevel}}
-                        </span>
-                    </div>
-                    <div class="flex sm:flex-col">
-                        <span class="w-16 sm:w-fit text-stone-600">
-                            Date
-                        </span>
-                        <span>
-                            {{dateFormat .Data.Post.CreatedAt}}
-                        </span>
-                    </div>
+        <div>
+            <div class="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-4">
+                <div class="flex sm:flex-col">
+                    <span class="w-16 sm:w-fit text-stone-600">
+                        Name
+                    </span>
+                    <span>
+                        {{capitalize .Data.Post.UserName}}
+                    </span>
                 </div>
-                {{with .Data.Post.Comment}}
-                    <section class="pt-4">
-                        <h2 class="pb-2 text-stone-600">
-                            Comment
-                        </h2>
-                        <p class="px-2 py-4 border rounded">
-                            {{.}}
-                        </p>
-                    </section>
-                {{end}}
-                <dialog class="max-w-sm w-full p-8 border-2 rounded shadow-lg border-stone-200 backdrop:bg-black/50 dark:bg-stone-800 dark:text-stone-300 dark:border-stone-700">
-                    <header class="flex justify-between items-end pb-6">
-                        <h2 class="text-xl font-bold">
-                            Contact Information
+                <div class="flex sm:flex-col">
+                    <span class="w-16 sm:w-fit text-stone-600">
+                        Sport
+                    </span>
+                    <span>
+                        {{capitalize .Data.Post.Sport}}
+                    </span>
+                </div>
+                <div class="flex sm:flex-col">
+                    <span class="w-16 sm:w-fit text-stone-600">
+                        Skill
+                    </span>
+                    <span>
+                        {{capitalize .Data.Post.SkillLevel}}
+                    </span>
+                </div>
+                <div class="flex sm:flex-col">
+                    <span class="w-16 sm:w-fit text-stone-600">
+                        Date
+                    </span>
+                    <span>
+                        {{dateFormat .Data.Post.CreatedAt}}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {{with .Data.Post.Comment}}
+                <div class="flex flex-col gap-2">
+                    <span class="w-16 sm:w-fit text-stone-600">
+                        Comment
+                    </span>
+                    <p class="p-2 border rounded">
+                        {{.}}
+                    </p>
+                </div>
+            {{end}}
+        {{if .Data.Timeslots}}
+            <div>
+                <span class="pb-2 text-stone-600">
+                    Availability
+                </span>
+                <table class="font-mono text-xs">
+                    <thead>
+                        <tr>
+                            <td></td>
+                            {{range .Data.Days}}
+                                <th class="p-1 font-normal" scope="col">
+                                    <span class="p-1" title="{{capitalize .Name}}">
+                                        {{capitalize .Abbrev}}
+                                    </span>
+                                </th>
+                            {{end}}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range $time := .Data.Times}}
+                            <tr>
+                                <th class="font-normal p-1" scope="row">
+                                    <span class="p-1" title="{{capitalize .Name}}">
+                                        {{capitalize $time.Abbrev}}
+                                    </span>
+                                </th>
+                                {{range $day := $.Data.Days}}
+                                    <td class="text-center border border-stone-600" title="{{capitalize $day.Name}} {{$time.Name}}">
+                                        {{range $timeslot := $.Data.Timeslots}}
+                                            {{if and (eq $timeslot.Day.ID $day.ID) (eq $timeslot.Time.ID $time.ID)}}
+                                                <svg class="block mx-auto w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="size-4">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                                </svg>
+                                            {{end}}
+                                        {{end}}
+                                    </td>
+                                {{end}}
+                            </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+        {{end}}
+        <div>
+            <dialog class="w-full sm:max-w-sm rounded shadow-xl bg-transparent backdrop:bg-black/50">
+                <div class="p-6 bg-white dark:bg-stone-800 dark:text-stone-300">
+                    <header class="flex justify-between items-end gap-4 pb-6">
+                        <h2 class="text-xl font-bold mb-0">
+                            {{.Data.Post.UserName}}
                         </h2>
                         <button class="rounded focus:ring text-stone-500 hover:underline dark:text-stone-300" autofocus>
                             Close
@@ -86,54 +130,13 @@
                             </li>
                         {{end}}
                     </ul>
-                </dialog>
-                <button class="p-2 mt-8 text-sm rounded border border-1 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
-                    Show Contact Information
-                </button>                  
-            </div>
-            <section>
-                <h2 class="pb-2 text-stone-600">
-                    Availability
-                </h2>
-                <table class="font-mono text-xs">
-                    <thead>
-                        <tr>
-                            <td></td>
-                            {{range .Data.Times}}
-                                <th class="p-1 font-normal" scope="col">
-                                    <span class="p-1" title="{{capitalize .Name}}">
-                                        {{capitalize .Abbrev}}
-                                    </span>
-                                </th>
-                            {{end}}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {{range $day := .Data.Days}}
-                            <tr>
-                                <th class="font-normal p-1" scope="row">
-                                    <span class="p-1" title="{{capitalize .Name}}">
-                                        {{capitalize $day.Abbrev}}
-                                    </span>
-                                </th>
-                                {{range $time := $.Data.Times}}
-                                    <td class="text-center border border-stone-600" title="{{capitalize $day.Name}} {{$time.Name}}">
-                                        {{range $timeslot := $.Data.Timeslots}}
-                                            {{if and (eq $timeslot.Day.ID $day.ID) (eq $timeslot.Time.ID $time.ID)}}
-                                                ✔️
-                                            {{end}}
-                                        {{end}}
-                                    </td>
-                                {{end}}
-                            </tr>
-                        {{end}}
-                    </tbody>
-                </table>
-    
-            </section>
+                </div>
+            </dialog>
+            <button class="px-4 py-2 text-sm rounded border border-1 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
+                Show Contact Information
+            </button>
         </div>
-    </article>
-    {{template "footer" .}}
+    </main>
 {{end}}
 
 {{define "scripts"}}

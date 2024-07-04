@@ -87,7 +87,7 @@ func scanPostCard(row pgx.CollectableRow) (*PostCard, error) {
 	return &p, err
 }
 
-func (m *PostModel) Fetch(sports []string, timeslots []Timeslot, limit int, offset int) (int64, []*PostCard, error) {
+func (m *PostModel) Fetch(sports []string, timeslots []Timeslot) ([]*PostCard, error) {
 	sql := `SELECT DISTINCT
 				post_.id_,
 				post_.created_at_,
@@ -120,7 +120,7 @@ func (m *PostModel) Fetch(sports []string, timeslots []Timeslot, limit int, offs
 			sql += "sport_.name_ = ANY ($1)"
 			args = append(args, sports)
 			if len(timeslots) != 0 {
-				sql += "\nAND "
+				sql += "\nAND ("
 			}
 		}
 
@@ -134,29 +134,27 @@ func (m *PostModel) Fetch(sports []string, timeslots []Timeslot, limit int, offs
 				sql += fmt.Sprintf(`day_of_week_.abbrev_ = $%d AND time_of_day_.abbrev_ = $%d`, idx+1, idx+2)
 				args = append(args, t.Day.Abbrev, t.Time.Abbrev)
 			}
+			if len(sports) != 0 {
+				sql += ")"
+			}
 		}
-	}
-
-	// First query to count number of total rows with filters
-	ct, err := m.pool.Exec(context.Background(), sql+";", args...)
-	if err != nil {
-		return -1, nil, err
 	}
 
 	sql += "\nORDER BY post_.id_ DESC\n"
 
-	idx := len(args)
-	sql += fmt.Sprintf("LIMIT $%d OFFSET $%d;", idx+1, idx+2)
-	args = append(args, limit, offset)
-
-	rows, err := m.pool.Query(context.Background(), sql, args...)
-	if err != nil {
-		return -1, nil, err
+	var rows pgx.Rows
+	var err error
+	if len(args) > 0 {
+		rows, err = m.pool.Query(context.Background(), sql, args...)
+	} else {
+		rows, err = m.pool.Query(context.Background(), sql)
 	}
 
-	p, err := pgx.CollectRows(rows, scanPostCard)
+	if err != nil {
+		return nil, err
+	}
 
-	return ct.RowsAffected(), p, err
+	return pgx.CollectRows(rows, scanPostCard)
 }
 
 type PostDetails struct {

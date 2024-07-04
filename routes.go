@@ -14,9 +14,7 @@ func (app *application) routes() http.Handler {
 	r.Use(secureHeaders)
 
 	r.NotFound(app.handleNotFound)
-
 	r.Handle("/static/*", app.handleStatic())
-
 	r.Get("/favicon.ico", app.handleFavicon)
 
 	r.Route("/", func(r chi.Router) {
@@ -25,6 +23,8 @@ func (app *application) routes() http.Handler {
 		r.Use(app.authenticate)
 
 		r.Get("/", app.handleRoot)
+		r.Get("/about", app.handleAbout)
+		r.NotFound(app.handleNotFound)
 
 		r.Route("/auth", func(r chi.Router) {
 			r.Get("/login", app.handleAuthLoginGet)
@@ -38,13 +38,13 @@ func (app *application) routes() http.Handler {
 			r.Get("/register", app.handleAuthRegisterGet)
 			r.Post("/register", app.handleAuthRegisterPost)
 
-			r.Route("/reset", func(r chi.Router) {
-				r.Get("/", app.handleAuthResetGet)
-				r.Post("/", app.handleAuthResetPost)
+			r.Get("/reset", app.handleAuthResetGet)
+			r.Post("/reset", app.handleAuthResetPost)
 
-				r.Get("/update", app.handleAuthResetUpdateGet)
-				r.Post("/update", app.handleAuthResetUpdatePost)
-			})
+			r.Get("/reset/update", app.handleAuthResetUpdateGet)
+			r.Post("/reset/update", app.handleAuthResetUpdatePost)
+
+			r.NotFound(app.handleNotFound)
 		})
 
 		r.Route("/profile", func(r chi.Router) {
@@ -52,14 +52,21 @@ func (app *application) routes() http.Handler {
 
 			r.Get("/", app.handleProfileGet)
 
-			r.Get("/edit", nil)
-			r.Post("/edit", nil)
+			r.Get("/contacts", app.handleProfileContactsGet)
+			r.Post("/contacts", app.handleProfileContactsPost)
+			r.Post("/contacts/delete", app.handleProfileContactsDeletePost)
 
-			r.Post("/delete", nil)
+			r.Get("/availability", app.handleProfileAvailabilityGet)
+			r.Post("/availability", app.handleProfileAvailabilityPost)
+
+			r.Get("/delete", app.handleProfileDeleteGet)
+			r.Post("/delete", app.handleProfileDeletePost)
+
+			r.NotFound(app.handleNotFound)
 		})
 
 		r.Route("/posts", func(r chi.Router) {
-			//r.Use(app.requireAuthentication)
+			r.Use(app.requireAuthentication)
 
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
@@ -69,10 +76,13 @@ func (app *application) routes() http.Handler {
 
 				r.Get("/delete", app.handlePostsIdDeleteGet)
 				r.Post("/delete", app.handlePostsIdDeletePost)
+
+				r.NotFound(app.handleNotFound)
 			})
 
 			r.Get("/new", app.handlePostsNewGet)
 			r.Post("/new", app.handlePostsNewPost)
+			r.NotFound(app.handleNotFound)
 		})
 	})
 
@@ -114,4 +124,8 @@ func (app *application) handleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.render(w, r, http.StatusOK, "login.html", nil)
+}
+
+func (app *application) handleAbout(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, http.StatusOK, "about.html", nil)
 }

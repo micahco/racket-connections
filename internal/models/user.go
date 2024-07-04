@@ -141,3 +141,11 @@ func (m *UserModel) GetProfile(id int) (*UserProfile, error) {
 
 	return pgx.CollectOneRow(rows, scanUserProfile)
 }
+
+func (m *UserModel) Delete(id int) error {
+	sql := "DELETE FROM user_ WHERE id_ = $1;"
+
+	_, err := m.pool.Exec(context.Background(), sql, id)
+
+	return err
+}

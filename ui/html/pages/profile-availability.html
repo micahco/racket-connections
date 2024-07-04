@@ -1,0 +1,75 @@
+{{define "title"}}Edit Availability{{end}}
+
+{{define "main"}}
+    <main class="mt-8">
+        <h1>
+            Edit Availability
+        </h1>
+        <form action="" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div class="flex flex-wrap gap-x-4 gap-y-2">
+                <table id="timetable" class="font-mono text-sm">
+                    <thead>
+                        <tr>
+                            <td></td>
+                            {{range .Data.Times}}
+                                <th class="w-24 p-1 font-normal" scope="col">
+                                    <button class="w-full p-1 rounded border border-1 bg-stone-100 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" aria-label="Toggle {{capitalize .Name}}">
+                                        {{capitalize .Name}}
+                                    </button>
+                                </th>
+                            {{end}}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range $day := .Data.Days}}
+                            <tr>
+                                <th class="font-normal p-1" scope="row">
+                                    <button class="px-2 py-1 rounded border border-1 bg-stone-100 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{capitalize .Name}}">
+                                        {{capitalize $day.Abbrev}}
+                                    </button>
+                                </th>
+                                {{range $time := $.Data.Times}}
+                                    <td class="border">
+                                        <div class="flex">
+                                            <input class="appearance-none w-full h-8 border-4 border-stone-100 bg-stone-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer dark:bg-stone-800 dark:border-stone-800 dark:checked:bg-green-900 dark:checked:border-green-900 dark:hover:border-green-800" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}"
+                                            {{range $timeslot := $.Data.Timeslots}}
+                                                {{if and (eq $timeslot.Day.ID $day.ID) (eq $timeslot.Time.ID $time.ID)}}
+                                                    checked
+                                                {{end}}
+                                            {{end}}
+                                            />
+                                        </div>
+                                    </td>
+                                {{end}}
+                            </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                <dl class="flex justify-between gap-2 w-full px-8 text-sm md:flex-col md:justify-start md:w-auto md:p-0">
+                    <div>
+                        <dt>Morning</dt>
+                        <dd class="italic">08:00 - 12:00</dd>
+                    </div>
+                    <div>
+                        <dt>Afternoon</dt>
+                        <dd class="italic">12:00 - 4:00</dd>
+                    </div>
+                    <div>
+                        <dt>Evening</dt>
+                        <dd class="italic">4:00 - 8:00</dd>
+                    </div>
+                </dl>
+            </div>
+            <div class="pt-8">
+                <button class="w-full sm:w-32 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-stone-700">
+                    Update
+                </button>
+            </div>
+        </form>
+    </main>
+{{end}}
+
+{{define "scripts"}}
+<script src="/static/scripts/timetable.js"></script>
+{{end}}

@@ -1,0 +1,23 @@
+{{define "title"}}Edit Contacts{{end}}
+
+{{define "main"}}
+    <main class="mt-8">
+        <h1>
+            Delete Account
+        </h1>
+        <p>
+            Are you sure you want to delete your account?
+        </p>
+        <form action="/profile/delete" method="POST">
+            <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+            <div class="flex gap-8 mt-4">
+                <button class="rounded hover:ring-2 text-red-600 ring-red-600">
+                    Confirm 
+                </button>
+                <a href="/profile">Cancel</a>
+            </div>
+        </form>
+    </main>
+{{end}}
+
+{{define "scripts"}}{{end}}

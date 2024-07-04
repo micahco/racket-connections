@@ -4,7 +4,7 @@ VALUES
     ('Sarah Jane', 'sarahd@oregonstate.edu', 'pswd'),
     ('Chad Thunder', 'chadt@oregonstate.edu', 'pswd'),
     ('Johnny Appleseed', 'johna@oregonstate.edu', 'pswd'),
-    ('Bella Gurl', 'belala@oregonstate.edu', 'pswd'),
+    ('Serena Williams', 'belala@oregonstate.edu', 'pswd'),
     ('Free Thinker', 'frreee@oregonstate.edu', 'pswd'),
     ('Hal 3000', 'hal@oregonstate.edu', 'pswd'),
     ('Dewey Decimal', 'deweu@oregonstate.edu', 'pswd'),

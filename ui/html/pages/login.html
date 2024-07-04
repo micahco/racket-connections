@@ -1,21 +1,18 @@
-{{define "title"}}Racket Connections{{end}}
+{{define "title"}}Welcome{{end}}
 
 {{define "main"}}
-    <article class="mb-32">
-        <h1 class="inline text-2xl font-bold text-beaver-orange">
-            Racket Connections
+    <main class="mt-8">
+        <h1>
+            Welcome
         </h1>
-    
-        <p class="mt-6">
-            An online board for OSU students interested in playing court sports and making friends.
+        <p>
+            Racket Connections is an online board for OSU students interested in playing court sports and making friends.
         </p>
-    
-        <div class="flex flex-wrap gap-x-16 gap-y-4 mt-12">
+        <div class="flex flex-wrap gap-16 mt-12">
             <section class="max-w-sm w-full">
                 <h2 class="text-xl">
                     Existing user:
                 </h2>
-            
                 <form action="/auth/login" method="POST">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="flex flex-col gap-4 mt-6">
@@ -42,12 +39,9 @@
                         <div class="md:flex gap-2">
                             <div class="md:w-1/4"></div>
                             <div class="md:w-3/4 flex items-center gap-4">
-                                <div class="md:w-28">
-                                    <button class="w-full p-2 text-sm border border-1 rounded bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
-                                        Login
-                                    </button>
-                                </div>
-                        
+                                <button class="w-28 p-2 text-sm border border-1 rounded bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
+                                    Login
+                                </button>
                                 <div>
                                     <a class="text-sm" href="/auth/reset">
                                         Forgot password?
@@ -58,12 +52,10 @@
                     </div>
                 </form>    
             </section>
-        
             <section class="max-w-sm w-full">
                 <h2 class="text-xl">
                     New user:
                 </h2>
-
                 <form action="/auth/signup" method="POST">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                     <div class="flex flex-col gap-4 mt-6">
@@ -80,20 +72,16 @@
                         <div class="md:flex gap-2">
                             <div class="md:w-1/4"></div>
                             <div class="md:w-3/4 flex items-center gap-4">
-                                <div class="md:w-28">
-                                    <button class="w-full p-2 text-sm border border-1 rounded bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
-                                        Sign Up
-                                    </button>
-                                </div>
+                                <button class="w-28 p-2 text-sm border border-1 rounded bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
+                                    Sign Up
+                                </button>
                             </div>
                         </div>
                     </div>
                 </form>   
             </section>
         </div>
-    </article>
-
-    {{template "footer" .}}
+    </main>
 {{end}}
 
 {{define "scripts"}}{{end}}

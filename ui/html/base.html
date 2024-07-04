@@ -4,22 +4,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{template "title" .}}</title>
+    <title>Racket Connections - {{template "title" .}}</title>
     <link rel="stylesheet" href="/static/main.css">
 </head>
-<body class="max-w-5xl mx-auto px-4 pb-12 bg-white text-black  dark:bg-stone-900 dark:text-stone-300">
-    <div class="pt-8 pb-8">
-        {{if .Flash.Message}}
-            <div role="status" class="p-4 w-full text-center border rounded-md flash-{{.Flash.Type}}">
-                {{.Flash.Message}}
-            </div>
+<body class="p-4 bg-white text-black  dark:bg-stone-900 dark:text-stone-300">
+    {{if .Flash.Message}}
+        <div role="status" class="max-w-2xl w-full mb-4 p-4 text-center border rounded-md flash-{{.Flash.Type}}">
+            {{.Flash.Message}}
+        </div>
+    {{end}}
+    <header>
+        <a class="text-2xl font-bold text-beaver-orange" href="/">
+            Racket Connections
+        </a>
+        {{if .IsAuthenticated}}
+            <nav class="flex flex-wrap gap-6 mt-4">
+                <form action="/auth/logout" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                    <button class="w-16 py-0.5 text-sm rounded border border-1 border-stone-700 bg-stone-200 hover:bg-stone-300 hover:ring-2 hover:ring-blue-300 dark:bg-stone-800 dark:hover:bg-stone-800">
+                        Logout
+                    </button>
+                </form>
+                <a href="/profile">Profile</a>
+            </nav>
         {{end}}
-    </div>
-
-    <main>
-        {{template "main" .}}
-    </main>
-
+    </header>
+    {{template "main" .}}
+    <footer class="flex flex-wrap items-end gap-x-12 gap-y-6 mt-32 text-sm">
+        <span>
+            Copyright &copy; {{.CurrentYear}}. 
+            All rights reserved.
+            Developed for Oregon State University. 
+        </span>
+        <nav>
+            <ul class="flex gap-4">
+                <li>
+                    <a href="/links">Links</a>
+                </li>
+                <li>
+                    <a href="/about">About</a>
+                </li>
+            </ul>
+        </nav>
+    </footer>
     {{template "scripts" .}}
 </body>
 </html>

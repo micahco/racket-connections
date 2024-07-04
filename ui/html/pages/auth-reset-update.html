@@ -1,34 +1,36 @@
 {{define "title"}}New Password{{end}}
 
 {{define "main"}}
-    {{template "header" .}}
-    <article class="mt-8">
-        <h1 class="text-xl font-bold mb-4">
+    <main class="mt-8">
+        <h1>
             Update Password
         </h1>
         <form action="/auth/reset/update" method="POST">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div class="flex flex-col gap-6 max-w-sm w-full">
-                <div class="flex flex-col gap-2">
-                    <p class="text-sm">
-                        Must be between 8 to 72 characters long
-                    </p>
-                    <input class="w-full p-2 appearance-none border rounded dark:bg-stone-800" type="password" name="password" autocomplete="current-password" required>
-                </div>
                 {{if not .Data.HasSessionEmail}}
-                    <div class="flex flex-col gap-2 max-w-sm w-full pb-6">
-                        <label class="font-bold" for="email">
-                            Confirm Email
+                    <div class="flex flex-col gap-2 max-w-sm w-full">
+                        <label class="text-lg font-bold" for="email">
+                            Email
                         </label>
                         <input class="w-full p-2 appearance-none border rounded dark:bg-stone-800" type="email" name="email" autocomplete="username" placeholder="onid@oregonstate.edu" required>
                     </div>
                 {{end}}
+                <div class="flex flex-col gap-2">
+                    <label class="text-lg font-bold" for="password">
+                        New Password
+                    </label>
+                    <p class="mb-1">
+                        Must be between 8 to 72 characters long
+                    </p>
+                    <input class="w-full p-2 appearance-none border rounded dark:bg-stone-800" type="password" name="password" autocomplete="current-password" required>
+                </div>
                 <button class="w-full sm:w-24 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-stone-700">
                     Update
                 </button>
             </div>
         </form>
-    </article>
+    </main>
 {{end}}
 
 {{define "scripts"}}{{end}}

@@ -3,8 +3,11 @@ include .env
 build: css-minify
 	go build -o ./bin/main
 
-deploy: build
+sync:
 	rsync -a ./bin/ ${DO_USER}@${DO_HOST}:/home/${DO_USER}/racket-connections
+
+deploy: build sync
+	ssh -t ${DO_USER}@${DO_HOST} 'sudo systemctl restart racket-connections'
 
 connect:
 	ssh ${DO_USER}@${DO_HOST}

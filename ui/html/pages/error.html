@@ -1,16 +1,16 @@
 {{define "title"}}{{.Data.Code}} - {{.Data.StatusText}}{{end}}
 
 {{define "main"}}
-    {{template "header"}}
-    <h1 class="text-xl font-bold">
-        {{.Data.Code}} - {{.Data.StatusText}}
-    </h1>
-    {{with .Data.Message}}
-        <p class="mt-8">
-            {{.}}
-        </p>
-    {{end}}
-    {{template "footer"}}
+    <main class="mt-8">
+        <h1>
+            <span class="font-bold mr-2">{{.Data.Code}}</span> {{.Data.StatusText}}
+        </h1>
+        {{with .Data.Message}}
+            <pre>
+                {{.}}
+            </pre>
+        {{end}}
+    </main>
 {{end}}
 
 {{define "scripts"}}{{end}}

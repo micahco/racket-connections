@@ -1,58 +1,64 @@
-{{define "title"}}{{.Data.Name}}{{end}}
+{{define "title"}}Profile{{end}}
 
 {{define "main"}}
-    {{template "header" .}}
-
-    <article>
+    <main class="max-w-xs w-full mt-8">
         <h1>
-            {{.Data.Name}}
+            Profile
         </h1>
-
-        <nav>
-            <a href="/">Edit profile</a>
+        <nav class="flex flex-wrap gap-x-8 gap-y-2">
+            <a href="/auth/reset">
+                Change password
+            </a>
+            <a class="text-red-600" href="/profile/delete">
+                Close account
+            </a>
         </nav>
-    
-        <section>
-            <h2>
-                Login
-            </h2>
-        
-            <p>
-                Email: {{.Data.Email}}
-            </p>
-        
-            <p>
-                <a href="/">Update password</a>
-            </p>
+        <section class="mt-8">
+            <header class="flex items-center gap-2 mb-4">
+                <h2 class="mb-0">
+                    Contact Methods
+                </h2>
+                <a title="Edit contacts" href="/profile/contacts">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                </a>
+            </header>
+            <table>
+                <tbody>
+                    {{range .Data.Contacts}}
+                        <tr>
+                            <td class="pr-4 text-stone-600">
+                                {{capitalize .Method}}
+                            </td>
+                            <td class="">
+                                {{.Value}}
+                            </td>
+                        </tr>
+                    {{end}}
+                </tbody>
+            </table>
         </section>
-    
-        <section>
-            <h2>
-                Contact Methods
-            </h2>
-        
-            <ul>
-                {{range .Data.Contacts}}
-                    <li>
-                        {{.Method}} - {{.Value}}
-                    </li>
-                {{end}}
-            </ul>
-        </section>
-    
-        <section>
-            <h2>
-                Availability
-            </h2>
-            
-            <table id="timetable">
+        <section class="mt-8">
+            <header class="flex items-center gap-2 mb-4">
+                <h2 class="mb-0">
+                    Availability
+                </h2>
+                <a title="Edit availability" href="/profile/availability">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                    </svg>
+                </a>
+            </header>
+            <table class="font-mono text-xs">
                 <thead>
                     <tr>
-                        <th scope="col">
-                        </th>
+                        <td></td>
                         {{range .Data.Times}}
-                            <th scope="col">
-                                {{.Name}}
+                            <th class="p-1 font-normal" scope="col">
+                                <span class="p-1" title="{{capitalize .Name}}">
+                                    {{capitalize .Abbrev}}
+                                </span>
                             </th>
                         {{end}}
                     </tr>
@@ -60,14 +66,18 @@
                 <tbody>
                     {{range $day := .Data.Days}}
                         <tr>
-                            <th scope="row">
-                                {{$day.Abbrev}}
+                            <th class="font-normal p-1" scope="row">
+                                <span class="p-1" title="{{capitalize .Name}}">
+                                    {{capitalize $day.Abbrev}}
+                                </span>
                             </th>
                             {{range $time := $.Data.Times}}
-                                <td>
+                                <td class="text-center border border-stone-600" title="{{capitalize $day.Name}} {{$time.Name}}">
                                     {{range $timeslot := $.Data.Timeslots}}
                                         {{if and (eq $timeslot.Day.ID $day.ID) (eq $timeslot.Time.ID $time.ID)}}
-                                            a
+                                            <svg class="block mx-auto w-4 text-green-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="4" stroke="currentColor" class="size-4">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                                            </svg>
                                         {{end}}
                                     {{end}}
                                 </td>
@@ -77,9 +87,7 @@
                 </tbody>
             </table>
         </section>
-    </article>
-
-    {{template "footer" .}}
+    </main>
 {{end}}
 
 {{define "scripts"}}{{end}}

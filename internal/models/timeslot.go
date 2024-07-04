@@ -121,3 +121,11 @@ func (m *TimeslotModel) User(userID int) ([]*Timeslot, error) {
 
 	return timeslots, nil
 }
+
+func (m *TimeslotModel) DeleteUser(userID int) error {
+	sql := "DELETE FROM timeslot_ WHERE user_id_ = $1;"
+
+	_, err := m.pool.Exec(context.Background(), sql, userID)
+
+	return err
+}

@@ -28,7 +28,7 @@ func (app *application) serverError(w http.ResponseWriter, r *http.Request, err 
 	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
 	app.errorLog.Output(2, trace)
 
-	app.renderError(w, r, http.StatusInternalServerError, err.Error())
+	app.renderError(w, r, http.StatusInternalServerError, "")
 }
 
 func unauthorizedError(w http.ResponseWriter) {

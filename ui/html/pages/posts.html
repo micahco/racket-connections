@@ -1,149 +1,87 @@
 {{define "title"}}Posts{{end}}
 
 {{define "main"}}
-    {{template "header" .}}
-    <div class="flex flex-row-reverse flex-wrap justify-end gap-x-4 gap-y-12 my-12">
-        <article class="flex-1">
-            <header class="flex items-end justify-between mb-8">
-                <h1 class="text-2xl font-bold">
+    <div class="flex flex-row-reverse flex-wrap-reverse justify-end gap-8">
+        <main class="flex-1 sm:px-8">
+            <header class="flex items-center justify-between mb-12">
+                <h1 class="mb-0">
                     Posts
                 </h1>
-                <nav>
+                <nav> 
                     <a class="px-4 py-2 font-bold text-center rounded text-white bg-beaver-orange hover:bg-stone-700 hover:no-underline" href="/posts/new">
                         New Post
                     </a>
                 </nav>
             </header>
-            <div class="border border-stone-200 dark:border-stone-700">
-                <table class="w-full text-sm ">
-                    <thead class="mb-2">
-                        <tr class="text-stone-600">
-                            <th class="h-10 pl-4 text-left">
-                                Name
-                            </th>
-                            <th class="h-10 text-left">
-                                Sport
-                            </th>
-                            <th class="h-10 text-left">
-                                Skill
-                            </th>
-                            <th class="h-10 pr-4 text-right">
-                                Date
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="[&>*:nth-child(odd)]:bg-stone-100 dark:[&>*:nth-child(odd)]:bg-stone-950">
-                        {{range .Data.Posts}}
-                            <tr>
-                                <td class="h-10 p-4 sm:py-2">
-                                    <a href="/posts/{{.ID}}/{{queryEscape .UserName}}">
-                                        {{.UserName}}
-                                    </a>
-                                </td>
-                                <td class="h-10 py-4 sm:py-2 pr-4">
-                                    {{capitalize .Sport}}
-                                </td>
-                                <td class="h-10 py-4 sm:py-2 pr-4">
-                                    {{capitalize .SkillLevel}}
-                                </td>
-                                <td class="h-10 py-4 sm:py-2 pr-4 text-right text-stone-600">
-                                    {{humanDate .CreatedAt}}
-                                </td>
-                            </tr>
-                        {{end}}
-                    </tbody>
-                </table>
-                {{if not .Data.Posts}}
-                    <div class="mt-8 flex flex-col items-center gap-4">
-                        <h2>
-                            No posts found...
-                        </h2>
-                        <p>
-                            <a href="?">Clear filters</a>
-                        </p>
+            <div class="flex flex-wrap gap-8 sm:gap-12">
+                {{range .Data.Posts}}
+                    <a href="/posts/{{.ID}}/{{queryEscape .UserName}}" class="sm:max-w-64 w-full hover:no-underline text-black dark:text-stone-300">
+                        <div class="group transition shadow hover:shadow-md bg-white dark:bg-stone-800">
+                            <div class="h-2 bg-beaver-orange border border-beaver-orange"></div>
+                            <div class="p-4 border-x border-b group-hover:border-x-black group-hover:border-b-black dark:group-hover:border-x-stone-600 dark:group-hover:border-b-stone-600">
+                                <h3 class="font-bold">
+                                    {{.UserName}}
+                                </h3>
+                                <div class="flex justify-between items-end mt-2">
+                                    <div>
+                                        <div class="mb-2">
+                                            {{capitalize .Sport}}
+                                        </div>
+                                        <div class="italic">
+                                            {{capitalize .SkillLevel}}
+                                        </div>
+                                    </div>
+                                    <div class="text-right text-stone-600 dark:text-stone-400">
+                                        <span>
+                                            {{humanDate .CreatedAt}}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                {{else}}
+                    <div>
+                        <h3>
+                            No results...
+                        </h3>
                     </div>
                 {{end}}
-                <div class="flex justify-center items-center gap-4 py-4 text-sm border-t font-mono border-stone-200 dark:border-stone-700">
-                    <p>
-                        {{.Data.PageStart}} - {{.Data.PageEnd}} of {{.Data.PageCount}}
-                    </p>
-                    {{if or .Data.PrevPage .Data.NextPage}}
-                        <nav class="flex gap-4">
-                            {{if .Data.PrevPage}}
-                                <a href="{{.Data.PrevPage}}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                                    </svg>
-                                </a>
-                            {{else}}
-                                <a role="link" class="opacity-25" aria-disabled="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
-                                    </svg>
-                                </a>
-                            {{end}}
-                            {{if .Data.NextPage}}
-                                <a href="{{.Data.NextPage}}">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                    </svg>
-                                </a>
-                            {{else}}
-                                <a role="link" class="opacity-25" aria-disabled="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                                    </svg>
-                                </a>
-                            {{end}}
-                        </nav>
-                    {{end}}
-                </div>
             </div>
-        </article>
-        <aside class="w-full sm:max-w-52">
-            <h2 class="text-xl mb-2">
-                Filters
-            </h2>
-            <form action="" method="GET">
-                <div class="flex gap-2 pb-6 text-sm">
-                    <a class="w-16 text-center py-0.5 rounded border border-1 text-black border-stone-700 bg-stone-200 hover:bg-blue-200 hover:no-underline dark:text-stone-300 dark:bg-stone-800 dark:hover:bg-blue-950" href="?">
-                        Clear
-                    </a>
-                    <button class="w-16 py-0.5 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-stone-300 hover:ring-2 hover:ring-electric-beav dark:bg-stone-800 dark:hover:bg-stone-800" type="submit">
-                        Apply
-                    </button>
-                </div>
-                <div class="flex sm:flex-col justify-between gap-y-6">
+        </main>
+        <aside class="flex-1 sm:flex-none mt-8">
+            <form id="filters" method="GET">
+                <div class="flex flex-col gap-8">
                     <fieldset>
-                        <legend class="mb-2">
-                            Sports:
+                        <legend class="mb-4">
+                            Sports
                         </legend>
-                        <ul class="flex flex-col gap-2 text-sm">
+                        <div class="flex flex-wrap gap-4 sm:gap-2 max-w-xs text-sm">
                             {{range $sport := .Data.Sports}}
-                                <li class="inline-flex gap-1.5 items-center w-fit rounded hover:cursor-pointer hover:ring-2 ring-blue-200">
-                                    <input class="hover:cursor-pointer" type="checkbox" name="sport" value="{{$sport.Name}}" id="{{$sport.Name}}"
+                                <div class="flex">
+                                    <input class="peer appearance-none" type="checkbox" name="sport" value="{{$sport.Name}}" id="{{$sport.Name}}"
                                         {{range $.Data.Query.Sport}}
                                             {{if eq . $sport.Name}}
                                                 checked
                                             {{end}}
                                         {{end}}
                                     />
-                                    <label class="hover:cursor-pointer" for="{{$sport.Name}}">
+                                    <label class="px-4 py-2 rounded-full hover:cursor-pointer border bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-900 peer-checked:bg-beaver-orange peer-checked:border-beaver-orange peer-checked:text-white" for="{{$sport.Name}}">
                                         {{capitalize $sport.Name}}
                                     </label>
-                                </li>
+                                </div>
                             {{end}}
-                        </ul>
+                        </div>
                     </fieldset>
                     <fieldset>
-                        <legend class="mb-2">
-                            Availability:
+                        <legend class="mb-4">
+                            Availability
                         </legend>
-                        <table id="timetable" class="font-mono text-xs">
+                        <table id="timetable" class="w-full font-mono text-xs">
                             <thead>
                                 <tr>
                                     <td></td>
-                                    {{range .Data.Times}}
+                                    {{range .Data.Days}}
                                         <th class="p-1 font-normal" scope="col">
                                             <button class="w-full p-1 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
                                                 {{capitalize .Abbrev}}
@@ -153,14 +91,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                {{range $day := .Data.Days}}
+                                {{range $time := .Data.Times}}
                                     <tr>
                                         <th class="font-normal p-1" scope="row">
                                             <button class="p-1 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
-                                                {{capitalize $day.Abbrev}}
+                                                {{capitalize $time.Abbrev}}
                                             </button>
                                         </th>
-                                        {{range $time := $.Data.Times}}
+                                        {{range $day := $.Data.Days}}
                                             <td class="border border-stone-600">
                                                 <div class="flex">
                                                     <input class="appearance-none w-full h-8 border-4 border-stone-100 bg-stone-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer dark:bg-stone-800 dark:border-stone-800 dark:checked:bg-green-900 dark:checked:border-green-900 dark:hover:border-green-800" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}"
@@ -178,13 +116,21 @@
                             </tbody>
                         </table>
                     </fieldset>
+                    <div class="flex items-center gap-4">
+                        <a href="?">
+                            Clear Filters
+                        </a>
+                        <button class="hidden px-4 py-2 text-center rounded-full text-white bg-beaver-orange hover:bg-stone-700" type="submit">
+                            Apply
+                        </button>
+                    </div>
                 </div>
             </form>
         </aside>
     </div>
-    {{template "footer" .}}
 {{end}}
 
 {{define "scripts"}}
 <script src="/static/scripts/timetable.js"></script>
+<script src="/static/scripts/filters.js"></script>
 {{end}}

@@ -57,21 +57,23 @@ func (m *ContactModel) Methods() ([]*ContactMethod, error) {
 }
 
 type UserContact struct {
-	Method string
+	ID     int
 	Value  string
+	Method string
 }
 
 func scanUserContact(row pgx.CollectableRow) (*UserContact, error) {
 	var c UserContact
-	err := row.Scan(&c.Method, &c.Value)
+	err := row.Scan(&c.ID, &c.Value, &c.Method)
 
 	return &c, err
 }
 
-func (m *ContactModel) All(userID int) ([]*UserContact, error) {
+func (m *ContactModel) UserContacts(userID int) ([]*UserContact, error) {
 	sql := `SELECT
-			m.name_,
-			c.value_
+			c.id_,
+			c.value_,
+			m.name_
 		FROM contact_ c
 		INNER JOIN contact_method_ m
 			ON c.contact_method_id_ = m.id_
@@ -102,4 +104,12 @@ func (m *ContactModel) MethodID(name string) (int, error) {
 	err := m.pool.QueryRow(context.Background(), sql, name).Scan(&id)
 
 	return id, err
+}
+
+func (m *ContactModel) Delete(id int) error {
+	sql := "DELETE FROM contact_ WHERE id_ = $1;"
+
+	_, err := m.pool.Exec(context.Background(), sql, id)
+
+	return err
 }

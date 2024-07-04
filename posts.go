@@ -12,26 +12,17 @@ import (
 	"github.com/micahco/racket-connections/internal/validator"
 )
 
-const (
-	PAGE_SIZE = 12
-)
-
 type postsQuery struct {
 	Sport    []string
 	Timeslot []models.Timeslot
 }
 
 type postsData struct {
-	Query     postsQuery
-	Days      []*models.DayOfWeek
-	Times     []*models.TimeOfDay
-	Sports    []*models.Sport
-	Posts     []*models.PostCard
-	PageStart int
-	PageEnd   int
-	PageCount int
-	NextPage  string
-	PrevPage  string
+	Query  postsQuery
+	Days   []*models.DayOfWeek
+	Times  []*models.TimeOfDay
+	Sports []*models.Sport
+	Posts  []*models.PostCard
 }
 
 func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
@@ -66,48 +57,19 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	limit := PAGE_SIZE + 1
-	offset := (page - 1) * PAGE_SIZE
-	c, p, err := app.models.Post.Fetch(q.Sport, q.Timeslot, limit, offset)
+	p, err := app.models.Post.Fetch(q.Sport, q.Timeslot)
 	if err != nil {
 		app.serverError(w, r, err)
 
 		return
 	}
 
-	var nextPage string
-	if len(p) > PAGE_SIZE {
-		p = p[:PAGE_SIZE]
-		q := r.URL.Query()
-		q.Set("page", strconv.Itoa(page+1))
-		nextPage = fmt.Sprintf("/posts?%s", q.Encode())
-	}
-
-	var prevPage string
-	if page > 1 {
-		q := r.URL.Query()
-		q.Set("page", strconv.Itoa(page-1))
-		prevPage = fmt.Sprintf("/posts?%s", q.Encode())
-	}
-
-	count := int(c)
-	start := offset + 1
-	end := offset + PAGE_SIZE
-	if end > count {
-		end = count
-	}
-
 	data := postsData{
-		Query:     q,
-		Days:      days,
-		Times:     times,
-		Sports:    s,
-		Posts:     p,
-		NextPage:  nextPage,
-		PrevPage:  prevPage,
-		PageCount: count,
-		PageStart: start,
-		PageEnd:   end,
+		Query:  q,
+		Days:   days,
+		Times:  times,
+		Sports: s,
+		Posts:  p,
 	}
 
 	app.render(w, r, http.StatusOK, "posts.html", data)
@@ -152,7 +114,7 @@ func (app *application) handlePostsIdGet(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	c, err := app.models.Contact.All(p.UserID)
+	c, err := app.models.Contact.UserContacts(p.UserID)
 	if err != nil {
 		app.serverError(w, r, err)
 
@@ -259,7 +221,12 @@ func (app *application) handlePostsIdDeletePost(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	app.models.Post.Delete(postID)
+	err = app.models.Post.Delete(postID)
+	if err != nil {
+		app.renderError(w, r, http.StatusBadRequest, "")
+
+		return
+	}
 
 	f := FlashMessage{
 		Type:    FlashSuccess,
