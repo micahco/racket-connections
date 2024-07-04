@@ -1,12 +1,17 @@
 {{define "title"}}Posts{{end}}
 
 {{define "main"}}
-    <div class="flex flex-row-reverse flex-wrap-reverse justify-end gap-8">
+    <div class="flex flex-row-reverse flex-wrap justify-end gap-x-8 gap-y-4 mt-8 sm:mt-0">
         <main class="flex-1 sm:px-8">
             <header class="flex items-center justify-between mb-12">
-                <h1 class="mb-0">
-                    Posts
-                </h1>
+                <div>
+                    <h1 class="mb-2">
+                        Posts
+                    </h1>
+                    <a href="#filters" class="sm:hidden">
+                        Filter
+                    </a>
+                </div>
                 <nav> 
                     <a class="px-4 py-2 font-bold text-center rounded text-white bg-beaver-orange hover:bg-stone-700 hover:no-underline" href="/posts/new">
                         New Post
@@ -41,90 +46,99 @@
                         </div>
                     </a>
                 {{else}}
-                    <div>
-                        <h3>
-                            No results...
-                        </h3>
-                    </div>
+                    <h3 class="text-center">
+                        No results...
+                    </h3>
                 {{end}}
+                <a href="#" class="sm:hidden mx-auto">
+                    Back to top &uarr;
+                </a>
             </div>
         </main>
         <aside class="flex-1 sm:flex-none mt-8">
             <form id="filters" method="GET">
-                <div class="flex flex-col gap-8">
-                    <fieldset>
-                        <legend class="mb-4">
-                            Sports
-                        </legend>
-                        <div class="flex flex-wrap gap-4 sm:gap-2 max-w-xs text-sm">
-                            {{range $sport := .Data.Sports}}
-                                <div class="flex">
-                                    <input class="peer appearance-none" type="checkbox" name="sport" value="{{$sport.Name}}" id="{{$sport.Name}}"
-                                        {{range $.Data.Query.Sport}}
-                                            {{if eq . $sport.Name}}
-                                                checked
-                                            {{end}}
-                                        {{end}}
-                                    />
-                                    <label class="px-4 py-2 rounded-full hover:cursor-pointer border bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-900 peer-checked:bg-beaver-orange peer-checked:border-beaver-orange peer-checked:text-white" for="{{$sport.Name}}">
-                                        {{capitalize $sport.Name}}
-                                    </label>
-                                </div>
-                            {{end}}
-                        </div>
-                    </fieldset>
-                    <fieldset>
-                        <legend class="mb-4">
-                            Availability
-                        </legend>
-                        <table id="timetable" class="w-full font-mono text-xs">
-                            <thead>
-                                <tr>
-                                    <td></td>
-                                    {{range .Data.Days}}
-                                        <th class="p-1 font-normal" scope="col">
-                                            <button class="w-full p-1 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
-                                                {{capitalize .Abbrev}}
-                                            </button>
-                                        </th>
-                                    {{end}}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{range $time := .Data.Times}}
-                                    <tr>
-                                        <th class="font-normal p-1" scope="row">
-                                            <button class="p-1 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
-                                                {{capitalize $time.Abbrev}}
-                                            </button>
-                                        </th>
-                                        {{range $day := $.Data.Days}}
-                                            <td class="border border-stone-600">
-                                                <div class="flex">
-                                                    <input class="appearance-none w-full h-8 border-4 border-stone-100 bg-stone-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer dark:bg-stone-800 dark:border-stone-800 dark:checked:bg-green-900 dark:checked:border-green-900 dark:hover:border-green-800" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}"
-                                                        {{range $.Data.Query.Timeslot}}
-                                                            {{if and (eq .Day.Abbrev $day.Abbrev) (eq .Time.Abbrev $time.Abbrev)}}
-                                                                checked
-                                                            {{end}}
-                                                        {{end}}
-                                                    />
-                                                </div>
-                                            </td>
-                                        {{end}}
-                                    </tr>
-                                {{end}}
-                            </tbody>
-                        </table>
-                    </fieldset>
-                    <div class="flex items-center gap-4">
+                <div>
+                    <h2 class="mb-2">
+                        Filters
+                    </h2>
+                    <div class="flex items-center gap-4 text-sm">
                         <a href="?">
-                            Clear Filters
+                            Clear
                         </a>
-                        <button class="hidden px-4 py-2 text-center rounded-full text-white bg-beaver-orange hover:bg-stone-700" type="submit">
+                        <button class="text-stone-600" type="submit">
                             Apply
                         </button>
                     </div>
                 </div>
+                <fieldset class="mt-4">
+                    <legend class="mb-4">
+                        Sports
+                    </legend>
+                    <div class="flex flex-wrap gap-4 sm:gap-2 max-w-xs text-sm">
+                        {{range $sport := .Data.Sports}}
+                            <div class="flex">
+                                <input class="peer appearance-none" type="checkbox" name="sport" value="{{$sport.Name}}" id="{{$sport.Name}}"
+                                    {{range $.Data.Query.Sport}}
+                                        {{if eq . $sport.Name}}
+                                            checked
+                                        {{end}}
+                                    {{end}}
+                                />
+                                <label class="px-4 py-2 rounded-full hover:cursor-pointer border bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-900 peer-checked:bg-beaver-orange peer-checked:border-beaver-orange peer-checked:text-white" for="{{$sport.Name}}">
+                                    {{capitalize $sport.Name}}
+                                </label>
+                            </div>
+                        {{end}}
+                    </div>
+                </fieldset>
+                <fieldset class="mt-6">
+                    <legend class="mb-4">
+                        Availability
+                    </legend>
+                    <noscript>
+                        <p class="text-sm">
+                            <strong>Note:</strong> The day and time buttons won't work without JavaScript.
+                        </p>
+                    </noscript>
+                    <table id="timetable" class="w-full font-mono text-xs">
+                        <thead>
+                            <tr>
+                                <td></td>
+                                {{range .Data.Days}}
+                                    <th class="p-1 font-normal" scope="col">
+                                        <button class="w-full p-1 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
+                                            {{capitalize .Abbrev}}
+                                        </button>
+                                    </th>
+                                {{end}}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{range $time := .Data.Times}}
+                                <tr>
+                                    <th class="font-normal p-1" scope="row">
+                                        <button class="p-1 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
+                                            {{capitalize $time.Abbrev}}
+                                        </button>
+                                    </th>
+                                    {{range $day := $.Data.Days}}
+                                        <td class="border border-stone-600">
+                                            <div class="flex">
+                                                <input class="appearance-none w-full h-8 border-4 border-stone-100 bg-stone-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer dark:bg-stone-800 dark:border-stone-800 dark:checked:bg-green-900 dark:checked:border-green-900 dark:hover:border-green-800" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}"
+                                                    {{range $.Data.Query.Timeslot}}
+                                                        {{if and (eq .Day.Abbrev $day.Abbrev) (eq .Time.Abbrev $time.Abbrev)}}
+                                                            checked
+                                                        {{end}}
+                                                    {{end}}
+                                                />
+                                            </div>
+                                        </td>
+                                    {{end}}
+                                </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </fieldset>
             </form>
         </aside>
     </div>

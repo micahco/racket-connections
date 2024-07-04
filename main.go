@@ -67,7 +67,7 @@ func main() {
 		os.Getenv("RC_SMTP_PASS"),
 		&mail.Address{
 			Name:    "Racket Connections",
-			Address: "no-reply@rc.cowell.dev",
+			Address: "no-reply@cowell.dev",
 		},
 	)
 	if err != nil {

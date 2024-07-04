@@ -30,21 +30,16 @@
         {{end}}
     </header>
     {{template "main" .}}
-    <footer class="flex flex-wrap items-end gap-x-12 gap-y-6 mt-32 text-sm">
-        <span>
+    <footer class="mt-32 mb-8 text-sm">
+        <div class="text-stone-600">
             Copyright &copy; {{.CurrentYear}}. 
             All rights reserved.
             Developed for Oregon State University. 
-        </span>
-        <nav>
-            <ul class="flex gap-4">
-                <li>
-                    <a href="/links">Links</a>
-                </li>
-                <li>
-                    <a href="/about">About</a>
-                </li>
-            </ul>
+        </div>
+        <nav class="flex gap-4 mt-4">
+            <a href="/about">About</a>
+            <a href="mailto:cowellmi@oregonstate.edu">Contact</a>
+            <a href="https://github.com/micahco/racket-connections">Source</a>
         </nav>
     </footer>
     {{template "scripts" .}}
