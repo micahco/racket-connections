@@ -1,15 +1,28 @@
+/*
+ * Setup listener events for the day and time buttons in timetable.
+ * On click, toggle the checked state of each cell in the button's
+ * respective row or column.
+ */
+
+const table = document.getElementById("timetable")
+
 const toggleChecked = (nodes) => {
     let allChecked = true
     for (const td of nodes) {
-        if (!td.querySelector("input").checked) {
+        if (!td.querySelector("input[type='checkbox']").checked) {
             allChecked = false
             break
         }
     }
 
     for (const td of nodes) {
-        td.querySelector("input").checked = allChecked ? false : true
+        td.querySelector("input[type='checkbox']").checked = allChecked ? false : true
     }
+
+    // Simulate a change event. Necessary for filters.js
+    const event = new Event('change');
+    const el = nodes[0].querySelector("input[type='checkbox']")
+    el.dispatchEvent(event);
 }
 
 const rowNodes = (th) => {
@@ -23,8 +36,6 @@ const rowNodes = (th) => {
 
     return nodes
 }
-
-const table = document.getElementById("timetable")
 
 const colNodes = (col) => {
     const nodes = []

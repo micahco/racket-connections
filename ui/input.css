@@ -46,3 +46,7 @@ a {
 .flash-error {
     @apply border-red-600 text-red-600 bg-red-50 dark:bg-red-950 dark:text-red-100;
 }
+
+button.highlight {
+    @apply outline outline-2 outline-offset-2 outline-electric-beav;
+}

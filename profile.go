@@ -16,6 +16,7 @@ type profileData struct {
 	Days      []*models.DayOfWeek
 	Times     []*models.TimeOfDay
 	Timeslots []*models.Timeslot
+	Posts     []*models.ProfilePost
 }
 
 func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request) {
@@ -26,14 +27,14 @@ func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	p, err := app.models.User.GetProfile(suid)
+	u, err := app.models.User.GetProfile(suid)
 	if err != nil {
 		app.serverError(w, r, err)
 
 		return
 	}
 
-	c, err := app.models.Contact.UserContacts(suid)
+	contacts, err := app.models.Contact.UserContacts(suid)
 	if err != nil {
 		app.serverError(w, r, err)
 
@@ -47,16 +48,24 @@ func (app *application) handleProfileGet(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	posts, err := app.models.Post.User(suid)
+	if err != nil {
+		app.serverError(w, r, err)
+
+		return
+	}
+
 	days, _ := app.models.Timeslot.Days()
 	times, _ := app.models.Timeslot.Times()
 
 	data := profileData{
-		Name:      p.Name,
-		Email:     p.Email,
-		Contacts:  c,
+		Name:      u.Name,
+		Email:     u.Email,
+		Contacts:  contacts,
 		Days:      days,
 		Times:     times,
 		Timeslots: timeslots,
+		Posts:     posts,
 	}
 
 	app.render(w, r, http.StatusOK, "profile.html", data)

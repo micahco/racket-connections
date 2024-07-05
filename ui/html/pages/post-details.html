@@ -12,45 +12,40 @@
                 </a>
             {{end}}
         </header>
-        <div>
-            <div class="flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-4">
-                <div class="flex sm:flex-col">
-                    <span class="w-16 sm:w-fit text-stone-600">
-                        Name
-                    </span>
-                    <span>
-                        {{capitalize .Data.Post.UserName}}
-                    </span>
-                </div>
-                <div class="flex sm:flex-col">
-                    <span class="w-16 sm:w-fit text-stone-600">
+        <section>
+            <h2 class="font-bold">
+                {{capitalize .Data.Post.UserName}}
+            </h2>
+            <div class="flex gap-8">
+                <div class="flex flex-col">
+                    <div class="text-stone-600">
                         Sport
-                    </span>
-                    <span>
+                    </div>
+                    <div>
                         {{capitalize .Data.Post.Sport}}
-                    </span>
+                    </div>
                 </div>
-                <div class="flex sm:flex-col">
-                    <span class="w-16 sm:w-fit text-stone-600">
+                <div class="flex flex-col">
+                    <div class="text-stone-600">
                         Skill
-                    </span>
-                    <span>
+                    </div>
+                    <div>
                         {{capitalize .Data.Post.SkillLevel}}
-                    </span>
+                    </div>
                 </div>
-                <div class="flex sm:flex-col">
-                    <span class="w-16 sm:w-fit text-stone-600">
+                <div class="flex flex-col">
+                    <div class="text-stone-600">
                         Date
-                    </span>
-                    <span>
+                    </div>
+                    <div>
                         {{dateFormat .Data.Post.CreatedAt}}
-                    </span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
         {{with .Data.Post.Comment}}
                 <div class="flex flex-col gap-2">
-                    <span class="w-16 sm:w-fit text-stone-600">
+                    <span class="w-16 text-stone-600">
                         Comment
                     </span>
                     <p class="p-2 border rounded">
@@ -104,14 +99,9 @@
         <div>
             <dialog class="w-full sm:max-w-sm rounded shadow-xl bg-transparent backdrop:bg-black/50">
                 <div class="p-6 bg-white dark:bg-stone-800 dark:text-stone-300">
-                    <header class="flex justify-between items-end gap-4 pb-6">
-                        <h2 class="text-xl font-bold mb-0">
-                            {{.Data.Post.UserName}}
-                        </h2>
-                        <button class="rounded focus:ring text-stone-500 hover:underline dark:text-stone-300" autofocus>
-                            Close
-                        </button>
-                    </header>
+                    <h2 class="text-xl font-bold mb-6 pr-4">
+                        Contact Information
+                    </h2>
                     <ul>
                         {{range .Data.Contacts}}
                             <li class="flex flex-wrap gap-2">
@@ -130,6 +120,11 @@
                             </li>
                         {{end}}
                     </ul>
+                    <button class="absolute top-2 right-2 p-2 text-stone-500 hover:underline dark:text-stone-300" autofocus>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>                              
+                    </button>
                 </div>
             </dialog>
             <button class="px-4 py-2 text-sm rounded border border-1 bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">

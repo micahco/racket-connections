@@ -1,5 +1,7 @@
 bin/
 
+ui/static/main.css
+
 *.rest
 *.http
 *.env

@@ -1,3 +1,8 @@
+/*
+ * Update the contact method's value placeholder depending
+ * on the selected method.
+ */
+
 const method = document.getElementById("contact-method")
 const input = document.getElementById("contact-value")
 
@@ -14,8 +19,8 @@ const updateInput = (event) => {
             break
 
         case "other":
+            input.type = "text"
             input.placeholder = "Discord, IRC, Etc., Etc."
-
     }
 }
 

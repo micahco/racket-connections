@@ -3,13 +3,13 @@
 {{define "main"}}
     <div class="flex flex-row-reverse flex-wrap justify-end gap-x-8 gap-y-4 mt-8 sm:mt-0">
         <main class="flex-1 sm:px-8">
-            <header class="flex items-center justify-between mb-12">
+            <header class="flex items-center justify-between mb-8">
                 <div>
                     <h1 class="mb-2">
                         Posts
                     </h1>
                     <a href="#filters" class="sm:hidden">
-                        Filter
+                        Filters
                     </a>
                 </div>
                 <nav> 
@@ -65,7 +65,7 @@
                         <a href="?">
                             Clear
                         </a>
-                        <button class="text-stone-600" type="submit">
+                        <button type="submit" class="w-16 py-1 text-sm border border-1 rounded bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
                             Apply
                         </button>
                     </div>
@@ -95,11 +95,6 @@
                     <legend class="mb-4">
                         Availability
                     </legend>
-                    <noscript>
-                        <p class="text-sm">
-                            <strong>Note:</strong> The day and time buttons won't work without JavaScript.
-                        </p>
-                    </noscript>
                     <table id="timetable" class="w-full font-mono text-xs">
                         <thead>
                             <tr>

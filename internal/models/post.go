@@ -157,6 +157,44 @@ func (m *PostModel) Fetch(sports []string, timeslots []Timeslot) ([]*PostCard, e
 	return pgx.CollectRows(rows, scanPostCard)
 }
 
+type ProfilePost struct {
+	ID         int
+	CreatedAt  time.Time
+	Sport      string
+	SkillLevel string
+}
+
+func scanProfilePost(row pgx.CollectableRow) (*ProfilePost, error) {
+	var p ProfilePost
+	err := row.Scan(
+		&p.ID,
+		&p.CreatedAt,
+		&p.Sport,
+		&p.SkillLevel)
+	return &p, err
+}
+
+func (m *PostModel) User(userID int) ([]*ProfilePost, error) {
+	sql := `SELECT 
+				post_.id_,
+				post_.created_at_,
+				sport_.name_,
+				skill_level_.name_
+			FROM post_
+			INNER JOIN sport_
+				ON sport_.id_ = post_.sport_id_
+			INNER JOIN skill_level_
+				ON skill_level_.id_ = post_.skill_level_id_
+			WHERE user_id_ = $1;`
+
+	rows, err := m.pool.Query(context.Background(), sql, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return pgx.CollectRows(rows, scanProfilePost)
+}
+
 type PostDetails struct {
 	ID         int
 	Comment    string
