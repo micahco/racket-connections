@@ -30,7 +30,7 @@ css:
 css-minify:
 	./tailwindcss -i ./ui/input.css -o ./ui/static/main.css --minify
 
-run: docker pg-drop pg-init pg-sample
+run: docker
 	go run . -dev
 
 dev:

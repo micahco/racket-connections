@@ -66,7 +66,7 @@ func (app *application) routes() http.Handler {
 		})
 
 		r.Route("/posts", func(r chi.Router) {
-			//r.Use(app.requireAuthentication)
+			r.Use(app.requireAuthentication)
 
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
