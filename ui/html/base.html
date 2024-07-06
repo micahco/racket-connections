@@ -21,7 +21,7 @@
             <nav class="flex flex-wrap gap-6 mt-4">
                 <form action="/auth/logout" method="POST">
                     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                    <button class="w-16 py-0.5 text-sm rounded border border-1 border-stone-700 bg-stone-200 hover:bg-stone-300 hover:ring-2 hover:ring-blue-300 dark:bg-stone-800 dark:hover:bg-stone-800">
+                    <button class="w-16 py-0.5 text-sm rounded border border-1 border-stone-700 bg-stone-200 sm:hover:bg-stone-300 sm:hover:ring-2 sm:hover:ring-blue-300 dark:bg-stone-800 dark:sm:hover:bg-stone-800">
                         Logout
                     </button>
                 </form>

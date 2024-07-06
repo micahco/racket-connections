@@ -19,7 +19,7 @@
                             <form action="/profile/contacts/delete" method="post">
                                 <input type="hidden" name="csrf_token" value="{{$.CSRFToken}}">
                                 <input type="hidden" name="id" value="{{.ID}}">
-                                <button class="rounded hover:ring-2 text-red-600 ring-red-600">
+                                <button class="rounded sm:hover:ring-2 text-red-600 ring-red-600">
                                     Delete
                                 </button>
                             </form>
@@ -36,7 +36,7 @@
                 <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
                 <div class="flex">
                     <div class="w-1/4 flex">
-                        <select class="w-full px-4 py-2 border rounded rounded-tr-none rounded-br-none bg-stone-100 hover:border-stone-700 hover:cursor-pointer dark:bg-stone-800 dark:hover:border-stone-500" id="contact-method" name="contact-method">
+                        <select class="w-full px-4 py-2 border rounded rounded-tr-none rounded-br-none bg-stone-100 sm:hover:border-stone-700 sm:hover:cursor-pointer dark:bg-stone-800 dark:sm:hover:border-stone-500" id="contact-method" name="contact-method">
                             {{range .Data.Methods}}
                                 <option value="{{.Name}}">{{capitalize .Name}}</option>
                             {{end}}
@@ -47,7 +47,7 @@
                     </div>
                 </div>
                 <div class="pt-8">
-                    <button class="w-full sm:w-32 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-stone-700">
+                    <button class="w-full sm:w-32 py-2 rounded font-bold text-white bg-beaver-orange sm:hover:bg-stone-700">
                         Add
                     </button>
                 </div>

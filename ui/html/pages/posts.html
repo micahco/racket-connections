@@ -13,7 +13,7 @@
                     </a>
                 </div>
                 <div> 
-                    <a class="px-4 py-2 font-bold text-center rounded text-white bg-beaver-orange hover:bg-stone-700 hover:no-underline" href="/posts/new">
+                    <a class="px-4 py-2 font-bold text-center rounded text-white bg-beaver-orange sm:hover:bg-stone-700 sm:hover:no-underline" href="/posts/new">
                         New Post
                     </a>
                 </div>
@@ -21,10 +21,10 @@
             <div class="flex flex-wrap gap-8 sm:gap-12">
                 {{if .Data.Posts}}
                     {{range .Data.Posts}}
-                        <a href="/posts/{{.ID}}/{{queryEscape .UserName}}" class="sm:max-w-64 w-full hover:no-underline text-black dark:text-stone-300">
-                            <div class="group transition shadow hover:shadow-md bg-white dark:bg-stone-800">
+                        <a href="/posts/{{.ID}}/{{queryEscape .UserName}}" class="sm:max-w-64 w-full sm:hover:no-underline text-black dark:text-stone-300">
+                            <div class="group transition shadow sm:hover:shadow-md bg-white dark:bg-stone-800">
                                 <div class="h-2 bg-beaver-orange border border-beaver-orange"></div>
-                                <div class="p-4 border-x border-b group-hover:border-x-black group-hover:border-b-black dark:group-hover:border-x-stone-600 dark:group-hover:border-b-stone-600">
+                                <div class="p-4 border-x border-b group-sm:hover:border-x-black group-sm:hover:border-b-black dark:group-sm:hover:border-x-stone-600 dark:group-sm:hover:border-b-stone-600">
                                     <h3 class="font-bold">
                                         {{.UserName}}
                                     </h3>
@@ -75,7 +75,7 @@
                             <a href="?">
                                 Clear
                             </a>
-                            <button type="submit" class="w-16 py-1 border border-1 rounded bg-stone-200 hover:bg-stone-300 dark:bg-stone-800 dark:hover:bg-stone-700">
+                            <button type="submit" class="w-16 py-1 border border-1 rounded bg-stone-200 sm:hover:bg-stone-300 dark:bg-stone-800 dark:sm:hover:bg-stone-700">
                                 Apply
                             </button>
                         </div>
@@ -94,7 +94,7 @@
                                             {{end}}
                                         {{end}}
                                     />
-                                    <label class="px-4 py-2 rounded-full hover:cursor-pointer border bg-stone-200 dark:bg-stone-800 hover:bg-stone-300 dark:hover:bg-stone-900 peer-checked:bg-beaver-orange peer-checked:border-beaver-orange peer-checked:text-white" for="{{$sport.Name}}">
+                                    <label class="px-4 py-2 border rounded-full select-none sm:hover:cursor-pointer bg-stone-200 dark:bg-stone-800 sm:hover:bg-stone-300 dark:sm:hover:bg-stone-900 peer-checked:bg-beaver-orange peer-checked:border-beaver-orange peer-checked:text-white" for="{{$sport.Name}}">
                                         {{capitalize $sport.Name}}
                                     </label>
                                 </div>
@@ -111,7 +111,7 @@
                                     <td></td>
                                     {{range .Data.Days}}
                                         <th class="p-1 font-normal" scope="col">
-                                            <button class="w-full p-1 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
+                                            <button class="w-full p-1 rounded border border-1 border-stone-700 bg-stone-200 sm:hover:bg-green-200 dark:bg-stone-800 dark:sm:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
                                                 {{capitalize .Abbrev}}
                                             </button>
                                         </th>
@@ -122,14 +122,14 @@
                                 {{range $time := .Data.Times}}
                                     <tr>
                                         <th class="font-normal p-1" scope="row">
-                                            <button class="p-1 rounded border border-1 border-stone-700 bg-stone-200 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
+                                            <button class="p-1 rounded border border-1 border-stone-700 bg-stone-200 sm:hover:bg-green-200 dark:bg-stone-800 dark:sm:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{.Name}}">
                                                 {{capitalize $time.Abbrev}}
                                             </button>
                                         </th>
                                         {{range $day := $.Data.Days}}
                                             <td class="border border-stone-600">
                                                 <div class="flex">
-                                                    <input class="appearance-none w-full h-8 border-4 border-stone-100 bg-stone-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer dark:bg-stone-800 dark:border-stone-800 dark:checked:bg-green-900 dark:checked:border-green-900 dark:hover:border-green-800" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}"
+                                                    <input class="appearance-none w-full h-8 border-4 border-stone-100 bg-stone-100 checked:bg-green-300 checked:border-green-300 sm:hover:border-green-400 sm:hover:cursor-pointer dark:bg-stone-800 dark:border-stone-800 dark:checked:bg-green-900 dark:checked:border-green-900 dark:sm:hover:border-green-800" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}"
                                                         {{range $.Data.Query.Timeslot}}
                                                             {{if and (eq .Day.Abbrev $day.Abbrev) (eq .Time.Abbrev $time.Abbrev)}}
                                                                 checked

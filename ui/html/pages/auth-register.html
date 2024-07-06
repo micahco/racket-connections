@@ -44,7 +44,7 @@
                         </p>
                         <div class="flex">
                             <div class="w-1/4 flex">
-                                <select class="w-full px-4 py-2 border rounded rounded-tr-none rounded-br-none bg-stone-100 hover:border-stone-700 hover:cursor-pointer dark:bg-stone-800 dark:hover:border-stone-500" id="contact-method" name="contact-method">
+                                <select class="w-full px-4 py-2 border rounded rounded-tr-none rounded-br-none bg-stone-100 sm:hover:border-stone-700 sm:hover:cursor-pointer dark:bg-stone-800 dark:sm:hover:border-stone-500" id="contact-method" name="contact-method">
                                     {{range .Data.ContactMethods}}
                                         <option value="{{.Name}}">{{capitalize .Name}}</option>
                                     {{end}}
@@ -75,7 +75,7 @@
                                     <td></td>
                                     {{range .Data.Times}}
                                         <th class="w-24 p-1 font-normal" scope="col">
-                                            <button class="w-full p-1 rounded border border-1 bg-stone-100 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" aria-label="Toggle {{capitalize .Name}}">
+                                            <button class="w-full p-1 rounded border border-1 bg-stone-100 sm:hover:bg-green-200 dark:bg-stone-800 dark:sm:hover:bg-green-900" type="button" aria-label="Toggle {{capitalize .Name}}">
                                                 {{capitalize .Name}}
                                             </button>
                                         </th>
@@ -86,14 +86,14 @@
                                 {{range $day := .Data.Days}}
                                     <tr>
                                         <th class="font-normal p-1" scope="row">
-                                            <button class="px-2 py-1 rounded border border-1 bg-stone-100 hover:bg-green-200 dark:bg-stone-800 dark:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{capitalize .Name}}">
+                                            <button class="px-2 py-1 rounded border border-1 bg-stone-100 sm:hover:bg-green-200 dark:bg-stone-800 dark:sm:hover:bg-green-900" type="button" title="{{capitalize .Name}}" aria-label="Toggle {{capitalize .Name}}">
                                                 {{capitalize $day.Abbrev}}
                                             </button>
                                         </th>
                                         {{range $time := $.Data.Times}}
                                             <td class="border">
                                                 <div class="flex">
-                                                    <input class="appearance-none w-full h-8 border-4 border-stone-100 bg-stone-100 checked:bg-green-300 checked:border-green-300 hover:border-green-400 hover:cursor-pointer dark:bg-stone-800 dark:border-stone-800 dark:checked:bg-green-900 dark:checked:border-green-900 dark:hover:border-green-800" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}" />
+                                                    <input class="appearance-none w-full h-8 border-4 border-stone-100 bg-stone-100 checked:bg-green-300 checked:border-green-300 sm:hover:border-green-400 sm:hover:cursor-pointer dark:bg-stone-800 dark:border-stone-800 dark:checked:bg-green-900 dark:checked:border-green-900 dark:sm:hover:border-green-800" type="checkbox" name="{{$day.Abbrev}}-{{$time.Abbrev}}" title="{{capitalize $day.Name}} {{$time.Name}}" />
                                                 </div>
                                             </td>
                                         {{end}}
@@ -119,7 +119,7 @@
                 </fieldset>
             </div>
             <div class="pt-8">
-                <button class="w-full sm:w-48 py-2 rounded font-bold text-white bg-beaver-orange hover:bg-stone-700">
+                <button class="w-full sm:w-48 py-2 rounded font-bold text-white bg-beaver-orange sm:hover:bg-stone-700">
                     Create Account
                 </button>
             </div>

@@ -45,7 +45,7 @@
         <form action="/posts/{{.Data.Post.ID}}/delete" method="POST">
             <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
             <div class="flex gap-8">
-                <button class="rounded hover:ring-2 text-red-600 ring-red-600">
+                <button class="rounded sm:hover:ring-2 text-red-600 ring-red-600">
                     Confirm 
                 </button>
                 <a href="/posts/{{.Data.Post.ID}}">Cancel</a>

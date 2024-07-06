@@ -102,10 +102,10 @@
                     </h2>
                     <div class="flex flex-wrap gap-8 sm:gap-12">
                         {{range .Data.Posts}}
-                            <a href="/posts/{{.ID}}/{{queryEscape $.Data.Name}}" class="sm:max-w-64 w-full hover:no-underline text-black dark:text-stone-300">
-                                <div class="group transition shadow hover:shadow-md bg-white dark:bg-stone-800">
+                            <a href="/posts/{{.ID}}/{{queryEscape $.Data.Name}}" class="sm:max-w-64 w-full sm:hover:no-underline text-black dark:text-stone-300">
+                                <div class="group transition shadow sm:hover:shadow-md bg-white dark:bg-stone-800">
                                     <div class="h-2 bg-beaver-orange border border-beaver-orange"></div>
-                                    <div class="p-4 border-x border-b group-hover:border-x-black group-hover:border-b-black dark:group-hover:border-x-stone-600 dark:group-hover:border-b-stone-600">
+                                    <div class="p-4 border-x border-b group-sm:hover:border-x-black group-sm:hover:border-b-black dark:group-sm:hover:border-x-stone-600 dark:group-sm:hover:border-b-stone-600">
                                         <h3 class="font-bold">
                                             {{capitalize .Sport}}
                                         </h3>
