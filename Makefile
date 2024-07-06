@@ -15,14 +15,8 @@ connect:
 docker:
 	docker start racket-connections && sleep 1
 
-pg-drop:
-	cat ./sql/drop.sql | docker exec -i racket-connections psql -U postgres -d postgres
-
-pg-init:
-	cat ./sql/init.sql | docker exec -i racket-connections psql -U postgres -d postgres
-
-pg-sample:
-	cat ./sql/sample.sql | docker exec -i racket-connections psql -U postgres -d postgres
+run: docker
+	go run . -dev
 
 css:
 	./tailwindcss -i ./ui/input.css -o ./ui/static/main.css --watch
@@ -30,8 +24,14 @@ css:
 css-minify:
 	./tailwindcss -i ./ui/input.css -o ./ui/static/main.css --minify
 
-run: docker
-	go run . -dev
-
 dev:
 	${MAKE} docker && ${MAKE} -j3 css run
+
+pg-drop: docker
+	cat ./sql/drop.sql | docker exec -i racket-connections psql -U postgres -d postgres
+
+pg-init: docker
+	cat ./sql/init.sql | docker exec -i racket-connections psql -U postgres -d postgres
+
+pg-sample: docker
+	cat ./sql/sample.sql | docker exec -i racket-connections psql -U postgres -d postgres
