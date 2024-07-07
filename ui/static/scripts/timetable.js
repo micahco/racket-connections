@@ -3,7 +3,6 @@
  * On click, toggle the checked state of each cell in the button's
  * respective row or column.
  */
-
 const table = document.getElementById("timetable")
 
 const toggleChecked = (nodes) => {
@@ -19,7 +18,9 @@ const toggleChecked = (nodes) => {
         td.querySelector("input[type='checkbox']").checked = allChecked ? false : true
     }
 
-    // Simulate a change event. Necessary for filters.js
+    /*
+     * Simulate a change event. Required for filters.js
+     */
     const event = new Event('change');
     const el = nodes[0].querySelector("input[type='checkbox']")
     el.dispatchEvent(event);

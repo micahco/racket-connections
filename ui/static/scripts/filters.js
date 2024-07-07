@@ -4,7 +4,6 @@
  * to the initial state. If there are any changes, apply the 
  * ".highlight" classs to the submit button.
  */
-
 const form = document.getElementById("filters")
 const submit = form.querySelector("button[type='submit']")
 const checkboxes = form.querySelectorAll("input[type='checkbox']")
@@ -28,6 +27,9 @@ checkboxes.forEach((el) => {
     })
 })
 
+/*
+ * Add current sports params to the /posts/available link.
+ */
 const available = form.querySelector("a[href='/posts/available']")
 
 const urlParams = new URLSearchParams(window.location.search);

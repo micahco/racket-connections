@@ -2,7 +2,6 @@
  * Update the contact method's value placeholder depending
  * on the selected method.
  */
-
 const method = document.getElementById("contact-method")
 const input = document.getElementById("contact-value")
 
