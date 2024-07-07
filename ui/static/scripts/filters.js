@@ -29,4 +29,10 @@ checkboxes.forEach((el) => {
 })
 
 const available = form.querySelector("a[href='/posts/available']")
-available.href += window.location.search
+
+const urlParams = new URLSearchParams(window.location.search);
+const sports = urlParams.getAll("sport")
+
+if (sports.length != 0) {
+    available.href += "?sport=" + sports.join("&sport=")
+}
