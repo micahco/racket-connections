@@ -62,10 +62,6 @@ func (app *application) getSessionUserID(r *http.Request) (int, error) {
 	return id, nil
 }
 
-func (app *application) handleAuthLoginGet(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
 type authLoginForm struct {
 	email    string
 	password string
@@ -129,16 +125,6 @@ func (app *application) handleAuthLogoutPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	f := FlashMessage{
-		Type:    FlashSuccess,
-		Message: "Successfully logged out.",
-	}
-	app.flash(r, f)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func (app *application) handleAuthSignupGet(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -185,7 +171,7 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 	// Consistent flash message
 	f := FlashMessage{
 		Type:    FlashInfo,
-		Message: "A link to activate your account has been sent to the email address provided.",
+		Message: "A link to activate your account has been sent to the email address provided. Please check your junk folder.",
 	}
 
 	// Don't send a new link if less than 5 minutes since last
@@ -463,7 +449,7 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 
 	f := FlashMessage{
 		Type:    FlashInfo,
-		Message: "A link to reset your password has been emailed to the address provided.",
+		Message: "A link to reset your password has been sent to the email address provided. Please check your junk folder.",
 	}
 
 	if !exists {

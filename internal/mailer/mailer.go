@@ -44,8 +44,8 @@ func (m *Mailer) Send(recepient, templateFile string, data interface{}) error {
 		return fmt.Errorf("2: %s", err.Error())
 	}
 
-	html := new(bytes.Buffer)
-	err = tmpl.ExecuteTemplate(html, "html", data)
+	body := new(bytes.Buffer)
+	err = tmpl.ExecuteTemplate(body, "body", data)
 	if err != nil {
 		return fmt.Errorf("3: %s", err.Error())
 	}
@@ -54,7 +54,7 @@ func (m *Mailer) Send(recepient, templateFile string, data interface{}) error {
 	msg.SetHeader("To", recepient)
 	msg.SetHeader("From", m.sender.String())
 	msg.SetHeader("Subject", subject.String())
-	msg.SetBody("text/html", html.String())
+	msg.SetBody("text/plain", body.String())
 
 	return m.dialer.DialAndSend(msg)
 }

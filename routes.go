@@ -27,23 +27,18 @@ func (app *application) routes() http.Handler {
 		r.NotFound(app.handleNotFound)
 
 		r.Route("/auth", func(r chi.Router) {
-			r.Get("/login", app.handleAuthLoginGet)
+			r.Get("/login", app.handleRedirectToRoot)
 			r.Post("/login", app.handleAuthLoginPost)
-
+			r.Get("/logout", app.handleRedirectToRoot)
 			r.Post("/logout", app.handleAuthLogoutPost)
-
-			r.Get("/signup", app.handleAuthSignupGet)
+			r.Get("/signup", app.handleRedirectToRoot)
 			r.Post("/signup", app.handleAuthSignupPost)
-
 			r.Get("/register", app.handleAuthRegisterGet)
 			r.Post("/register", app.handleAuthRegisterPost)
-
 			r.Get("/reset", app.handleAuthResetGet)
 			r.Post("/reset", app.handleAuthResetPost)
-
 			r.Get("/reset/update", app.handleAuthResetUpdateGet)
 			r.Post("/reset/update", app.handleAuthResetUpdatePost)
-
 			r.NotFound(app.handleNotFound)
 		})
 
@@ -51,17 +46,13 @@ func (app *application) routes() http.Handler {
 			r.Use(app.requireAuthentication)
 
 			r.Get("/", app.handleProfileGet)
-
 			r.Get("/contacts", app.handleProfileContactsGet)
 			r.Post("/contacts", app.handleProfileContactsPost)
 			r.Post("/contacts/delete", app.handleProfileContactsDeletePost)
-
 			r.Get("/availability", app.handleProfileAvailabilityGet)
 			r.Post("/availability", app.handleProfileAvailabilityPost)
-
 			r.Get("/delete", app.handleProfileDeleteGet)
 			r.Post("/delete", app.handleProfileDeletePost)
-
 			r.NotFound(app.handleNotFound)
 		})
 
@@ -70,22 +61,17 @@ func (app *application) routes() http.Handler {
 
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
+			r.Get("/available", app.handlePostsAvailableGet)
+			r.Get("/new", app.handlePostsNewGet)
+			r.Post("/new", app.handlePostsNewPost)
+			r.NotFound(app.handleNotFound)
 
 			r.Route("/{id}", func(r chi.Router) {
 				r.Get("/*", app.handlePostsIdGet)
-
 				r.Get("/delete", app.handlePostsIdDeleteGet)
 				r.Post("/delete", app.handlePostsIdDeletePost)
-
 				r.NotFound(app.handleNotFound)
 			})
-
-			r.Get("/available", app.handlePostsAvailableGet)
-
-			r.Get("/new", app.handlePostsNewGet)
-			r.Post("/new", app.handlePostsNewPost)
-
-			r.NotFound(app.handleNotFound)
 		})
 	})
 
@@ -127,6 +113,10 @@ func (app *application) handleRoot(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.render(w, r, http.StatusOK, "login.html", nil)
+}
+
+func (app *application) handleRedirectToRoot(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func (app *application) handleAbout(w http.ResponseWriter, r *http.Request) {

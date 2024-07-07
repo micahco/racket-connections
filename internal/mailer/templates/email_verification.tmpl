@@ -1,16 +1,9 @@
 {{define "subject"}}Email verification{{end}}
 
-{{define "html"}}
-<!doctype html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-</head>
-    <body>
-        <p>Welcome!</p>
-        <p>Please follow the link below to create your account:</p>
-        <p><a href="{{.}}">{{.}}</a></p>
-    </body>
-</html>
+{{define "body"}}
+Welcome to Racket Connections,
+
+Please follow the link below to create your account:
+
+{{.}}
 {{end}}
