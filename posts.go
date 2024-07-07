@@ -26,11 +26,6 @@ type postsData struct {
 }
 
 func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
-	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
-	if page < 1 {
-		page = 1
-	}
-
 	sportsQuery := r.URL.Query()["sport"]
 	for i := 0; i < len(sportsQuery); i++ {
 		sportsQuery[i] = strings.ToLower(sportsQuery[i])
@@ -73,6 +68,31 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.render(w, r, http.StatusOK, "posts.html", data)
+}
+
+func (app *application) handlePostsAvailableGet(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+
+	suid, err := app.getSessionUserID(r)
+	if err != nil {
+		unauthorizedError(w)
+
+		return
+	}
+
+	timeslots, err := app.models.Timeslot.User(suid)
+	if err != nil {
+		app.serverError(w, r, err)
+
+		return
+	}
+
+	for _, t := range timeslots {
+		key := t.Day.Abbrev + "-" + t.Time.Abbrev
+		q.Add(key, "on")
+	}
+
+	http.Redirect(w, r, "/posts?"+q.Encode(), http.StatusSeeOther)
 }
 
 func (app *application) handlePostsPost(w http.ResponseWriter, r *http.Request) {

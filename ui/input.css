@@ -48,5 +48,5 @@ a {
 }
 
 button.highlight {
-    @apply outline outline-2 outline-offset-2 outline-electric-beav;
+    @apply font-semibold ring-2 ring-electric-beav;
 }

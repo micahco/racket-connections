@@ -80,8 +80,11 @@ func (app *application) routes() http.Handler {
 				r.NotFound(app.handleNotFound)
 			})
 
+			r.Get("/available", app.handlePostsAvailableGet)
+
 			r.Get("/new", app.handlePostsNewGet)
 			r.Post("/new", app.handlePostsNewPost)
+
 			r.NotFound(app.handleNotFound)
 		})
 	})

@@ -27,3 +27,6 @@ checkboxes.forEach((el) => {
         submit.classList.remove("highlight")
     })
 })
+
+const available = form.querySelector("a[href='/posts/available']")
+available.href += window.location.search
