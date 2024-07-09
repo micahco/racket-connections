@@ -6,7 +6,6 @@ import (
 )
 
 // https://blog.questionable.services/article/generating-secure-random-numbers-crypto-rand/
-
 func GenerateRandomBytes(n int) ([]byte, error) {
 	b := make([]byte, n)
 	_, err := rand.Read(b)
