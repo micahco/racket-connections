@@ -10,7 +10,7 @@
     Racket Connections is built with <a href="https://go.dev/">Go</a> along with the following open source software:
 </p>
 <ul class="list-disc ml-8 mb-4">
-    <li><a href="https://www.postgresql.org/">PostgresSQL</a> - database</li>
+    <li><a href="https://www.postgresql.org/">PostgreSQL</a> - database</li>
     <li><a href="https://github.com/jackc/pgx">pgx</a> - pure Go driver and toolkit for PostgreSQL</li>
     <li><a href="https://github.com/go-gomail/gomail">Gomail</a> - SMTP interface</li>
     <li><a href="https://github.com/go-chi/chi">chi</a> - router</li>
