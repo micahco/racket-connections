@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Racket Connections - {{template "title" .}}</title>
+    <title>{{template "title" .}} - Racket Connections</title>
     <link rel="stylesheet" href="/static/main.css">
 </head>
 <body class="p-4 bg-white text-black  dark:bg-stone-900 dark:text-stone-300">
@@ -30,17 +30,41 @@
         {{end}}
     </header>
     {{template "main" .}}
-    <footer class="mt-16 mb-8 text-sm">
-        <div class="text-stone-600">
+    <footer class="flex flex-wrap justify-between items-end gap-8 mt-24 sm:mx-4 pt-8 text-sm border-t border-stone-200 dark:border-stone-600">
+        <div class="flex flex-col sm:flex-row flex-wrap gap-x-24 gap-y-8 pb-8">
+            <nav>
+                <h3>
+                    Useful Links
+                </h3>
+                <ul class="space-y-2">
+                    <li><a href="https://recsports.oregonstate.edu/facilities/court-reservations">Court reservations</a></li>
+                </ul>
+            </nav>
+            <nav>
+                <h3>
+                    About
+                </h3>
+                <ul class="space-y-2">
+                    <li><a href="/about">About this website</a></li>
+                    <li><a href="https://github.com/micahco/racket-connections">Source code</a></li>
+                </ul>
+            </nav>
+            <nav>
+                <h3>
+                    Contact
+                </h3>
+                <ul class="space-y-2">
+                    <li><a href="mailto:cowellmi@oregonstate.edu">Email</a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="leading-6 text-stone-500">
             Copyright &copy; {{.CurrentYear}}. 
             All rights reserved.
-            Developed for Oregon State University. 
+            <span class="block sm:inline">
+                Developed for Oregon State University. 
+            </span>
         </div>
-        <nav class="flex gap-4 mt-4">
-            <a href="/about">About</a>
-            <a href="mailto:cowellmi@oregonstate.edu">Contact</a>
-            <a href="https://github.com/micahco/racket-connections">Source</a>
-        </nav>
     </footer>
     {{template "scripts" .}}
 </body>

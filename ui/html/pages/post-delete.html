@@ -1,42 +1,44 @@
-{{define "title"}}Delete Post - {{.Data.Post.UserName}}{{end}}
+{{define "title"}}Delete Post{{end}}
 
 {{define "main"}}
     <main class="mt-8">
         <h1>
             Delete Post
         </h1>
-        <div class="inline-flex flex-col sm:flex-row flex-wrap gap-x-8 gap-y-4">
-            <div class="flex sm:flex-col">
-                <span class="w-16 sm:w-fit text-stone-600">
-                    Name
-                </span>
-                <span>
+        <div class="flex flex-col flex-wrap gap-x-8 gap-y-4">
+            <div class="flex gap-2">
+                <div class="text-stone-600">
+                    Name:
+                </div>
+                <div>
                     {{capitalize .Data.Post.UserName}}
-                </span>
+                </div>
             </div>
-            <div class="flex sm:flex-col">
-                <span class="w-16 sm:w-fit text-stone-600">
-                    Sport
-                </span>
-                <span>
+            <div class="flex gap-2">
+                <div class="text-stone-600">
+                    Sport:
+                </div>
+                <div>
                     {{capitalize .Data.Post.Sport}}
-                </span>
+                </div>
             </div>
-            <div class="flex sm:flex-col">
-                <span class="w-16 sm:w-fit text-stone-600">
-                    Skill
-                </span>
-                <span>
+            <div class="flex gap-2">
+                <div class="text-stone-600">
+                    Skill Level:
+                </div>
+                <div>
                     {{capitalize .Data.Post.SkillLevel}}
-                </span>
+                </div>
             </div>
-            <div class="flex sm:flex-col">
-                <span class="w-16 sm:w-fit text-stone-600">
-                    Date
-                </span>
-                <span>
-                    {{dateFormat .Data.Post.CreatedAt}}
-                </span>
+            <div class="flex gap-2">
+                <div class="text-stone-600">
+                    Published:
+                </div>
+                <div>
+                    <time datetime="{{computerDate .Data.Post.CreatedAt}}">
+                        {{humanDate .Data.Post.CreatedAt}}
+                    </time>
+                </div>
             </div>
         </div>
         <p class="mt-8 mb-2 italic">

@@ -88,8 +88,8 @@ func (app *application) renderFromCache(w http.ResponseWriter, status int, page 
 	return nil
 }
 
-func dateFormat(t time.Time) string {
-	return t.Format("02 Jan 2006")
+func computerDate(t time.Time) string {
+	return t.Format("02-01-2006")
 }
 
 func humanDate(t time.Time) string {
@@ -107,7 +107,7 @@ func humanDate(t time.Time) string {
 	} else if days < 365 {
 		return t.Format("02 January")
 	}
-	return dateFormat(t)
+	return t.Format("02 Jan 2006")
 }
 
 func capitalize(s string) string {
@@ -128,11 +128,11 @@ func stripPhone(input string) string {
 }
 
 var functions = template.FuncMap{
-	"humanDate":   humanDate,
-	"dateFormat":  dateFormat,
-	"capitalize":  capitalize,
-	"stripPhone":  stripPhone,
-	"queryEscape": url.QueryEscape,
+	"humanDate":    humanDate,
+	"computerDate": computerDate,
+	"capitalize":   capitalize,
+	"stripPhone":   stripPhone,
+	"queryEscape":  url.QueryEscape,
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {

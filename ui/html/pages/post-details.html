@@ -1,42 +1,59 @@
-{{define "title"}}Post Details - {{.Data.Post.UserName}}{{end}}
+{{define "title"}}{{.Data.Post.UserName}} - {{capitalize .Data.Post.Sport}}{{end}}
 
 {{define "main"}}
-    <main class="flex flex-wrap gap-x-32 gap-y-8 mt-8">
-        <div class="flex flex-col gap-4 max-w-sm w-full">
-            <h1 class="mb-2 font-bold">
-                {{capitalize .Data.Post.UserName}}
-            </h1>
-            <div class="flex gap-8">
-                <div>
-                    <div class="text-stone-600">
-                        Sport
-                    </div>
-                    <div>
-                        {{capitalize .Data.Post.Sport}}
-                    </div>
+    <main class="flex flex-wrap gap-8 mt-8">
+        <div class="flex flex-col gap-4 max-w-xs w-full">
+            <header class="mb-2">
+                <h1 class="mb-0">
+                    Post Details
+                </h1>
+                {{if .Data.IsOwner}}
+                    <nav class="mt-4">
+                        <a class="text-red-600" href="/posts/{{.Data.Post.ID}}/delete">
+                            Delete Post
+                        </a>
+                    </nav>
+                {{end}}
+            </header>
+            <div class="flex gap-2">
+                <div class="text-stone-600">
+                    Name:
                 </div>
                 <div>
-                    <div class="text-stone-600">
-                        Skill
-                    </div>
-                    <div>
-                        {{capitalize .Data.Post.SkillLevel}}
-                    </div>
+                    {{capitalize .Data.Post.UserName}}
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <div class="text-stone-600">
+                    Sport:
                 </div>
                 <div>
-                    <div class="text-stone-600">
-                        Date
-                    </div>
-                    <div>
-                        {{dateFormat .Data.Post.CreatedAt}}
-                    </div>
+                    {{capitalize .Data.Post.Sport}}
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <div class="text-stone-600">
+                    Skill Level:
+                </div>
+                <div>
+                    {{capitalize .Data.Post.SkillLevel}}
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <div class="text-stone-600">
+                    Published:
+                </div>
+                <div>
+                    <time datetime="{{computerDate .Data.Post.CreatedAt}}">
+                        {{humanDate .Data.Post.CreatedAt}}
+                    </time>
                 </div>
             </div>
             {{with .Data.Post.Comment}}
                 <div class="flex flex-col gap-2">
-                    <span class="w-16 text-stone-600">
+                    <div class="text-stone-600">
                         Comment
-                    </span>
+                    </div>
                     <div class="p-2 border rounded">
                         {{.}}
                     </div>
@@ -45,7 +62,7 @@
         </div>
         <div class="flex flex-col gap-8">
             <section>
-                <h2>
+                <h2 class="font-bold">
                     Contact
                 </h2>
                 <ul class="flex flex-col gap-2 mt-2">
@@ -111,18 +128,6 @@
                 </section>
             {{end}}
         </div>
-        {{if .Data.IsOwner}}
-            <section>
-                <h2>
-                    Manage Post
-                </h2>
-                <nav>
-                    <a class="text-red-600" href="/posts/{{.Data.Post.ID}}/delete">
-                        Delete Post
-                    </a>
-                </nav>
-            </section>
-        {{end}}
     </main>
 {{end}}
 
