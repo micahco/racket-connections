@@ -15,54 +15,60 @@
                     </nav>
                 {{end}}
             </header>
-            <div class="flex gap-2">
-                <div class="text-stone-600">
-                    Name:
-                </div>
-                <div>
-                    {{capitalize .Data.Post.UserName}}
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <div class="text-stone-600">
-                    Sport:
-                </div>
-                <div>
-                    {{capitalize .Data.Post.Sport}}
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <div class="text-stone-600">
-                    Skill Level:
-                </div>
-                <div>
-                    {{capitalize .Data.Post.SkillLevel}}
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <div class="text-stone-600">
-                    Published:
-                </div>
-                <div>
-                    <time datetime="{{computerDate .Data.Post.CreatedAt}}">
-                        {{humanDate .Data.Post.CreatedAt}}
-                    </time>
-                </div>
-            </div>
-            {{with .Data.Post.Comment}}
-                <div class="flex flex-col gap-2">
-                    <div class="text-stone-600">
-                        Comment
-                    </div>
-                    <div class="p-2 border rounded">
-                        {{.}}
-                    </div>
-                </div>
-            {{end}}
+            <table class="table-fixed border-separate border-spacing-y-2">
+                <tbody>
+                    <tr>
+                        <th scope="row" class="w-16 font-normal text-left text-stone-600">
+                            Name
+                        </th>
+                        <td class="text-wrap">
+                            {{capitalize .Data.Post.UserName}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="w-16 font-normal text-left text-stone-600">
+                            Sport
+                        </th>
+                        <td>
+                            {{capitalize .Data.Post.Sport}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="w-16 font-normal text-left text-stone-600">
+                            Skill
+                        </th>
+                        <td>
+                            {{capitalize .Data.Post.SkillLevel}}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="w-16 font-normal text-left text-stone-600">
+                            Date
+                        </th>
+                        <td>
+                            <time datetime="{{computerDate .Data.Post.CreatedAt}}">
+                                {{humanDate .Data.Post.CreatedAt}}
+                            </time>
+                        </td>
+                    </tr>
+                    {{with .Data.Post.Comment}}
+                        <tr>
+                            <th colspan="2" class="text-stone-600">
+                                Comment
+                            </th>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                {{.}}
+                            </td>
+                        </tr>
+                    {{end}}
+                </tbody>
+            </table>
         </div>
         <div class="flex flex-col gap-8">
             <section>
-                <h2 class="font-bold">
+                <h2>
                     Contact
                 </h2>
                 <ul class="flex flex-col gap-2 mt-2">

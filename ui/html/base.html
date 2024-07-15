@@ -13,58 +13,37 @@
             {{.Flash.Message}}
         </div>
     {{end}}
-    <header>
+    <header class="flex flex-wrap justify-between items-end gap-x-16 gap-y-4">
         <a class="text-2xl font-bold text-beaver-orange" href="/">
             Racket Connections
         </a>
         {{if .IsAuthenticated}}
-            <nav class="flex flex-wrap gap-6 mt-4">
-                <form action="/auth/logout" method="POST">
-                    <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-                    <button class="w-16 py-0.5 text-sm rounded border border-1 border-stone-700 bg-stone-200 sm:hover:bg-stone-300 sm:hover:ring-2 sm:hover:ring-blue-300 dark:bg-stone-800 dark:sm:hover:bg-stone-800">
-                        Logout
-                    </button>
-                </form>
-                <a href="/profile">Profile</a>
+            <nav>
+                <div class="flex gap-8">
+                    <a href="/profile">Profile</a>
+                    <form action="/auth/logout" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+                        <button class="w-16 py-0.5 text-sm rounded border border-1 border-stone-700 bg-stone-200 sm:hover:bg-stone-300 sm:hover:ring-2 sm:hover:ring-blue-300 dark:bg-stone-800 dark:sm:hover:bg-stone-800">
+                            Logout
+                        </button>
+                    </form>
+                </div>
             </nav>
         {{end}}
     </header>
     {{template "main" .}}
-    <footer class="flex flex-wrap justify-between items-end gap-8 mt-24 sm:mx-4 pt-8 text-sm border-t border-stone-200 dark:border-stone-600">
-        <div class="flex flex-col sm:flex-row flex-wrap gap-x-24 gap-y-8 pb-8">
-            <nav>
-                <h3>
-                    Useful Links
-                </h3>
-                <ul class="space-y-2">
-                    <li><a href="https://recsports.oregonstate.edu/facilities/court-reservations">Court reservations</a></li>
-                </ul>
-            </nav>
-            <nav>
-                <h3>
-                    About
-                </h3>
-                <ul class="space-y-2">
-                    <li><a href="/about">About this website</a></li>
-                    <li><a href="https://github.com/micahco/racket-connections">Source code</a></li>
-                </ul>
-            </nav>
-            <nav>
-                <h3>
-                    Contact
-                </h3>
-                <ul class="space-y-2">
-                    <li><a href="mailto:cowellmi@oregonstate.edu">Email</a></li>
-                </ul>
-            </nav>
-        </div>
-        <div class="leading-6 text-stone-500">
+    <footer class="mt-16 pb-4 text-sm text-center sm:text-left">
+        <p class="leading-6 text-stone-500">
             Copyright &copy; {{.CurrentYear}}. 
             All rights reserved.
             <span class="block sm:inline">
                 Developed for Oregon State University. 
             </span>
-        </div>
+        </p>
+        <nav class="space-x-2">
+            <a href="/about">About</a>
+            <a href="mailto:cowellmi@oregonstate.edu">Contact</a>
+        </nav>
     </footer>
     {{template "scripts" .}}
 </body>
