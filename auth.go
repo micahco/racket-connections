@@ -211,6 +211,11 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 	}
 
 	link := fmt.Sprintf("%s/auth/register?token=%s", app.baseURL, token)
+
+	if app.isDevelopment {
+		fmt.Println("Verification link:", link)
+	}
+
 	app.background(func() {
 		err = app.mailer.Send(form.email, "email_verification.tmpl", link)
 		if err != nil {
@@ -485,6 +490,11 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 	}
 
 	link := fmt.Sprintf("%s/auth/reset/update?token=%s", app.baseURL, token)
+
+	if app.isDevelopment {
+		fmt.Println("Reset link:", link)
+	}
+
 	app.background(func() {
 		err = app.mailer.Send(form.email, "reset_password.tmpl", link)
 		if err != nil {

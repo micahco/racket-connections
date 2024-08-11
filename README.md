@@ -17,3 +17,11 @@ Racket Connections is an online board for OSU students interested in playing cou
 5. Launch the development server:
 
     make dev
+
+## Environment
+
+Runtime variables are stored in a `.env` file. Here is what that file should like:
+
+    RC_BASE_URL="http://localhost:4000"
+    RC_DB_DSN="postgresql://postgres:postgres@localhost/postgres"
+    ...
