@@ -160,18 +160,35 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// Consistent flash message
+	f := FlashMessage{
+		Type:    FlashInfo,
+		Message: "A link to activate your account has been sent to the email address provided. Please check your junk folder.",
+	}
+
+	// Check if user with email already exists
+	exists, err := app.models.User.ExistsEmail(form.email)
+	if err != nil {
+		app.serverError(w, r, err)
+
+		return
+	}
+
+	// Don't send any email if user with email already exists
+	if exists {
+		app.flash(r, f)
+
+		refresh(w, r)
+
+		return
+	}
+
 	// Check if link verification has already been created
 	v, err := app.models.Verification.Get(form.email)
 	if err != nil && err != models.ErrNoRecord {
 		app.serverError(w, r, err)
 
 		return
-	}
-
-	// Consistent flash message
-	f := FlashMessage{
-		Type:    FlashInfo,
-		Message: "A link to activate your account has been sent to the email address provided. Please check your junk folder.",
 	}
 
 	// Don't send a new link if less than 5 minutes since last

@@ -93,6 +93,10 @@ func computerDate(t time.Time) string {
 }
 
 func humanDate(t time.Time) string {
+	return t.Format("02-Jan-2006")
+}
+
+func sinceDate(t time.Time) string {
 	days := int(time.Since(t).Hours() / 24)
 	if days == 0 {
 		return "today"
@@ -104,10 +108,8 @@ func humanDate(t time.Time) string {
 		return "1 week ago"
 	} else if days < 30 {
 		return fmt.Sprintf("%d weeks", days%7)
-	} else if days < 365 {
-		return t.Format("02 January")
 	}
-	return t.Format("02 Jan 2006")
+	return humanDate(t)
 }
 
 func capitalize(s string) string {
@@ -128,6 +130,7 @@ func stripPhone(input string) string {
 }
 
 var functions = template.FuncMap{
+	"sinceDate":    sinceDate,
 	"humanDate":    humanDate,
 	"computerDate": computerDate,
 	"capitalize":   capitalize,

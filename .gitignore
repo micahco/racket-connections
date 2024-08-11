@@ -4,7 +4,6 @@ ui/static/main.css
 
 *.rest
 *.http
-*.env
-*.http
 
+.env
 tailwindcss
