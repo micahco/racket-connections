@@ -4,7 +4,10 @@
 	"name": "Go & PostgreSQL",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
+	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+	"mounts": [
+		"type=bind,source=${localEnv:HOME}/.ssh,target=/root/.ssh,readonly"
+	]
 
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
