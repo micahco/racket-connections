@@ -14,13 +14,4 @@ css-minify:
 
 dev:
 	${MAKE} -j2 css run
-
-sync:
-	rsync -a ./bin/ ${DO_USER}@${DO_HOST}:/home/${DO_USER}/racket-connections
-
-deploy: build sync
-	ssh -t ${DO_USER}@${DO_HOST} 'sudo systemctl restart racket-connections'
-
-connect:
-	ssh ${DO_USER}@${DO_HOST}
 	

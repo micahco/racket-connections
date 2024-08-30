@@ -66,10 +66,10 @@ func main() {
 	sm.Lifetime = 12 * time.Hour
 
 	m, err := mailer.New(
-		os.Getenv("RC_SMTP_HOST"),
-		os.Getenv("RC_SMTP_PORT"),
-		os.Getenv("RC_SMTP_USER"),
-		os.Getenv("RC_SMTP_PASS"),
+		os.Getenv("SMTP_HOST"),
+		os.Getenv("SMTP_PORT"),
+		os.Getenv("SMTP_USER"),
+		os.Getenv("SMTP_PASS"),
 		&mail.Address{
 			Name:    "Racket Connections",
 			Address: "no-reply@cowell.dev",
@@ -81,7 +81,7 @@ func main() {
 
 	app := &application{
 		isDevelopment:  *dev,
-		baseURL:        os.Getenv("RC_BASE_URL"),
+		baseURL:        os.Getenv("HOSTNAME"),
 		errorLog:       errorLog,
 		infoLog:        infoLog,
 		models:         models.New(pool),

@@ -22,6 +22,6 @@ Racket Connections is an online board for OSU students interested in playing cou
 
 Runtime variables are stored in a `.env` file. Here is what that file should like:
 
-    RC_BASE_URL="http://localhost:4000"
-    RC_DB_DSN="postgresql://postgres:postgres@localhost/postgres"
+    HOSTNAME="http://localhost:4000"
+    DATABASE_URL="postgresql://postgres:postgres@localhost/postgres"
     ...
