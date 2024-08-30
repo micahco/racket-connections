@@ -35,7 +35,7 @@ func main() {
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 
 	dev := flag.Bool("dev", false, "Development mode")
-	port := flag.String("port", "4000", "Listening address")
+	port := flag.String("port", "8080", "Listening address")
 	flag.Parse()
 
 	if *dev {
@@ -45,7 +45,12 @@ func main() {
 		}
 	}
 
-	pool, err := newPool(os.Getenv("RC_DB_DSN"))
+	connStr := os.Getenv("DATABASE_URL")
+	if connStr == "" {
+		log.Fatal("missing connection string")
+	}
+
+	pool, err := newPool(connStr)
 	if err != nil {
 		errorLog.Fatal(err)
 	}

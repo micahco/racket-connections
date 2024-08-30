@@ -196,13 +196,14 @@ func (m *PostModel) User(userID int) ([]*ProfilePost, error) {
 }
 
 type PostDetails struct {
-	ID         int
-	Comment    string
-	CreatedAt  time.Time
-	UserID     int
-	UserName   string
-	Sport      string
-	SkillLevel string
+	ID             int
+	Comment        string
+	CreatedAt      time.Time
+	UserID         int
+	UserName       string
+	Sport          string
+	SkillLevelID   int
+	SkillLevelName string
 }
 
 func scanPostDetails(row pgx.CollectableRow) (*PostDetails, error) {
@@ -214,7 +215,8 @@ func scanPostDetails(row pgx.CollectableRow) (*PostDetails, error) {
 		&p.UserID,
 		&p.UserName,
 		&p.Sport,
-		&p.SkillLevel)
+		&p.SkillLevelID,
+		&p.SkillLevelName)
 	return &p, err
 }
 
@@ -226,6 +228,7 @@ func (m *PostModel) GetDetails(id int) (*PostDetails, error) {
 			u.id_,
 			u.name_,
 			s.name_,
+			l.id_,
 			l.name_
 		FROM post_ p
 		INNER JOIN user_ u

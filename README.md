@@ -12,11 +12,11 @@ Racket Connections is an online board for OSU students interested in playing cou
 
 4. Execute the scripts in the `sql` directory to build the database schema and insert mock data:
     
-    for file in sql/*; do [ -f "$file" ] && cat "$file" | psql -h localhost -d postgres -U postgres ; done
+    `for file in sql/*; do [ -f "$file" ] && cat "$file" | psql -h localhost -d postgres -U postgres ; done`
 
 5. Launch the development server:
 
-    make dev
+    `make dev`
 
 ## Environment
 

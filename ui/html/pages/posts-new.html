@@ -26,7 +26,7 @@
                             </label>
                             <select class="p-2 text-sm border rounded bg-stone-100 border-stone-400 sm:hover:border-stone-700 dark:bg-stone-800 dark:sm:hover:border-stone-500" id="contact-method" id="skill-level" name="skill-level">
                                 {{range .Data.Skills}}
-                                    <option value="{{.ID}}">{{capitalize .Name}}</option>
+                                    <option value="{{.ID}}">{{capitalize .Name}} ({{.ID}})</option>
                                 {{end}}
                             </select>
                         </div>
