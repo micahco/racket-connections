@@ -51,20 +51,18 @@
                             </time>
                         </td>
                     </tr>
-                    {{with .Data.Post.Comment}}
-                        <tr>
-                            <th colspan="2" class="text-stone-600">
-                                Comment
-                            </th>
-                        </tr>
-                        <tr>
-                            <td colspan="2">
-                                {{.}}
-                            </td>
-                        </tr>
-                    {{end}}
                 </tbody>
             </table>
+            {{with .Data.Post.Comment}}
+                <section>
+                    <h2>
+                        Comment
+                    </h2>
+                    <p class="border rounded p-2">
+                        {{.}}
+                    </p>
+                </section>
+            {{end}}
         </div>
         <div class="flex flex-col gap-8">
             <section>
