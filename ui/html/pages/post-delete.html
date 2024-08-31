@@ -28,7 +28,7 @@
                         Skill
                     </th>
                     <td>
-                        {{capitalize .Data.Post.SkillLevel}}
+                        {{capitalize .Data.Post.SkillLevelName}} ({{.Data.Post.SkillLevelID}})
                     </td>
                 </tr>
                 <tr>
@@ -41,18 +41,6 @@
                         </time>
                     </td>
                 </tr>
-                {{with .Data.Post.Comment}}
-                    <tr>
-                        <th colspan="2" class="text-stone-600">
-                            Comment
-                        </th>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            {{.}}
-                        </td>
-                    </tr>
-                {{end}}
             </tbody>
         </table>
         <p class="mt-4 mb-2 italic">
