@@ -82,8 +82,7 @@ VALUES
     (36, 1,	'ccridgez@is.gd'),
     (37, 1,	'lpristnor10@sourceforge.net'),
     (38, 1,	'epostance11@seattletimes.com'),
-    (39, 1,	'shousen12@tinypic.com'),
-    (40, 1,	'gstife13@odnoklassniki.ru');
+    (39, 1,	'shousen12@tinypic.com');
 
 INSERT INTO timeslot_ (user_id_, day_id_, time_id_)
 VALUES
@@ -228,5 +227,4 @@ VALUES
     (36,6,2),
     (37,5,1),
     (38,3,1),
-    (39,1,4),
-    (40,4,3);
+    (39,1,4);
