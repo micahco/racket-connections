@@ -6,4 +6,4 @@ ui/static/main.css
 *.http
 
 .env
-tailwindcss
+!.devcontainer/.env
