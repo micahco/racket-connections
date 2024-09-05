@@ -6,22 +6,26 @@ Racket Connections is an online board for OSU students interested in playing cou
 
 1. Clone the repo.
 
-2. Open directory with VS Code in [Dev Container](https://code.visualstudio.com/docs/devcontainers/containers).
+1. Open directory with VS Code in [Dev Container](https://code.visualstudio.com/docs/devcontainers/containers).
 
-3. Download the Tailwind CSS [standalone CLI](https://tailwindcss.com/blog/standalone-cli) to the project directory.
+1. Execute the scripts in the `sql` directory to build the database schema and insert mock data:
+    ```
+    for file in sql/*; do [ -f "$file" ] && cat "$file" | psql -h localhost -d postgres -U postgres ; done
+    ```
 
-4. Execute the scripts in the `sql` directory to build the database schema and insert mock data:
-    
-    `for file in sql/*; do [ -f "$file" ] && cat "$file" | psql -h localhost -d postgres -U postgres ; done`
+1. Launch the development server:
 
-5. Launch the development server:
-
-    `make dev`
+    ```
+    make dev
+    ```
 
 ## Environment
 
-Runtime variables are stored in a `.env` file. Here is what that file should like:
+Runtime variables are stored in a `.env` file:
 
-    HOSTNAME="http://localhost:4000"
-    DATABASE_URL="postgresql://postgres:postgres@localhost/postgres"
-    ...
+    DATABASE_URL=postgresql://postgres:postgres@localhost/postgres
+    HOSTNAME=http://localhost:4000
+    SMTP_HOST=****
+    SMTP_PORT=****
+    SMTP_USER=****
+    SMTP_PASS=****
