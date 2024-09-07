@@ -10,8 +10,11 @@ import (
 func (app *application) routes() http.Handler {
 	r := chi.NewRouter()
 	r.Use(app.recovery)
-	//r.Use(app.logRequests)
 	r.Use(secureHeaders)
+
+	if app.isDevelopment {
+		r.Use(app.logRequests)
+	}
 
 	r.NotFound(app.handleNotFound)
 	r.Handle("/static/*", app.handleStatic())
