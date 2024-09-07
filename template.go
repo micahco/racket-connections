@@ -50,7 +50,14 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 		return
 	}
 
-	t, err = t.Funcs(functions).ParseFiles("./ui/html/pages/" + page)
+	t, err = t.Funcs(functions).ParseGlob("./ui/html/partials/*.html")
+	if err != nil {
+		app.serverError(w, r, err)
+
+		return
+	}
+
+	t, err = t.ParseFiles("./ui/html/pages/" + page)
 	if err != nil {
 		app.serverError(w, r, err)
 
@@ -151,6 +158,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 
 		patterns := []string{
 			"html/base.html",
+			"html/partials/*.html",
 			page,
 		}
 

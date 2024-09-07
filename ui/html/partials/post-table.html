@@ -1,0 +1,40 @@
+{{define "post-table"}}
+<table class="table-fixed border-separate border-spacing-y-2">
+    <tbody>
+        <tr>
+            <th scope="row" class="w-16 font-normal text-left text-stone-600">
+                Name
+            </th>
+            <td class="text-wrap">
+                {{capitalize .Data.Post.UserName}}
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" class="w-16 font-normal text-left text-stone-600">
+                Sport
+            </th>
+            <td>
+                {{capitalize .Data.Post.Sport}}
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" class="w-16 font-normal text-left text-stone-600">
+                Skill
+            </th>
+            <td>
+                {{capitalize .Data.Post.SkillLevelName}} ({{.Data.Post.SkillLevelID}})
+            </td>
+        </tr>
+        <tr>
+            <th scope="row" class="w-16 font-normal text-left text-stone-600">
+                Date
+            </th>
+            <td>
+                <time datetime="{{computerDate .Data.Post.CreatedAt}}">
+                    {{humanDate .Data.Post.CreatedAt}}
+                </time>
+            </td>
+        </tr>
+    </tbody>
+</table>
+{{end}}
