@@ -30,6 +30,17 @@ type application struct {
 	mailer         *mailer.Mailer
 }
 
+func (app *application) background(fn func()) {
+	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				app.infoLog.Println("BACKGROUND:", err)
+			}
+		}()
+		fn()
+	}()
+}
+
 func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
@@ -122,15 +133,4 @@ func newPool(dsn string) (*pgxpool.Pool, error) {
 	}
 
 	return pool, nil
-}
-
-func (app *application) background(fn func()) {
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				app.infoLog.Println("BACKGROUND:", err)
-			}
-		}()
-		fn()
-	}()
 }
