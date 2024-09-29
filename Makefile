@@ -1,10 +1,10 @@
 include .env
 
 build: css-minify
-	go build -o ./bin/main
+	go build -o=./bin/web ./cmd/web
 
 run:
-	go run . -dev -port=4000
+	go run ./cmd/web -dev -port=4000
 
 css:
 	tailwindcss -i ./ui/input.css -o ./ui/static/main.css --watch
