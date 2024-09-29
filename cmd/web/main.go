@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/gob"
 	"flag"
-	"html/template"
 	"log"
 	"net/http"
 	"net/mail"
+	"net/url"
 	"os"
 	"time"
 
@@ -15,94 +15,80 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	"github.com/micahco/racket-connections/internal/env"
 	"github.com/micahco/racket-connections/internal/mailer"
 	"github.com/micahco/racket-connections/internal/models"
 )
 
-type application struct {
-	isDevelopment  bool
-	baseURL        string
-	errorLog       *log.Logger
-	infoLog        *log.Logger
-	models         models.Models
-	templateCache  map[string]*template.Template
-	sessionManager *scs.SessionManager
-	mailer         *mailer.Mailer
-}
-
-func (app *application) background(fn func()) {
-	go func() {
-		defer func() {
-			if err := recover(); err != nil {
-				app.infoLog.Println("BACKGROUND:", err)
-			}
-		}()
-		fn()
-	}()
-}
-
 func main() {
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
-
+	// Parse CLI flags
 	dev := flag.Bool("dev", false, "Development mode")
 	port := flag.String("port", "8080", "Listening address")
 	flag.Parse()
 
+	// Loggers
+	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+
+	// Load .env for development
 	if *dev {
 		err := godotenv.Load()
 		if err != nil {
-			log.Fatal("Error loading .env file")
+			errorLog.Fatal("Error loading .env file")
 		}
 	}
 
-	connStr := os.Getenv("DATABASE_URL")
-	if connStr == "" {
-		log.Fatal("missing connection string")
+	// Create base URL
+	rawURL, err := env.Get("RC_BASE_URL")
+	if err != nil {
+		errorLog.Fatal(err)
 	}
 
-	pool, err := newPool(connStr)
+	baseURL, err := url.Parse(rawURL)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+
+	// PostgreSQL
+	pool, err := newPool()
 	if err != nil {
 		errorLog.Fatal(err)
 	}
 	defer pool.Close()
 
+	// HTML template cache
 	tc, err := newTemplateCache()
 	if err != nil {
 		errorLog.Fatal(err)
 	}
 
+	// Session manager
 	sm := scs.New()
 	sm.Store = pgxstore.New(pool)
 	sm.Lifetime = 12 * time.Hour
 
-	m, err := mailer.New(
-		os.Getenv("SMTP_HOST"),
-		os.Getenv("SMTP_PORT"),
-		os.Getenv("SMTP_USER"),
-		os.Getenv("SMTP_PASS"),
-		&mail.Address{
-			Name:    "Racket Connections",
-			Address: "no-reply@cowell.dev",
-		},
-	)
+	// SMTP mailer
+	m, err := newMailer()
 	if err != nil {
 		errorLog.Fatal(err)
 	}
 
+	// New app
 	app := &application{
 		isDevelopment:  *dev,
-		baseURL:        os.Getenv("HOSTNAME"),
 		errorLog:       errorLog,
 		infoLog:        infoLog,
+		baseURL:        baseURL,
 		models:         models.New(pool),
 		templateCache:  tc,
 		sessionManager: sm,
 		mailer:         m,
 	}
 
+	// Required to encode/decode session flash messages
 	gob.Register(FlashMessage{})
 
+	// Listen and serve
 	srv := &http.Server{
 		Addr:     ":" + *port,
 		ErrorLog: errorLog,
@@ -116,8 +102,13 @@ func main() {
 	}
 }
 
-func newPool(dsn string) (*pgxpool.Pool, error) {
-	config, err := pgxpool.ParseConfig(dsn)
+func newPool() (*pgxpool.Pool, error) {
+	connString, err := env.Get("RC_DB_URL")
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := pgxpool.ParseConfig(connString)
 	if err != nil {
 		return nil, err
 	}
@@ -133,4 +124,33 @@ func newPool(dsn string) (*pgxpool.Pool, error) {
 	}
 
 	return pool, nil
+}
+
+func newMailer() (*mailer.Mailer, error) {
+	host, err := env.Get("RC_SMTP_HOST")
+	if err != nil {
+		return nil, err
+	}
+
+	port, err := env.Get("RC_SMTP_PORT")
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := env.Get("RC_SMTP_USER")
+	if err != nil {
+		return nil, err
+	}
+
+	pass, err := env.Get("RC_SMTP_PASS")
+	if err != nil {
+		return nil, err
+	}
+
+	return mailer.New(host, port, user, pass,
+		&mail.Address{
+			Name:    "Racket Connections",
+			Address: "no-reply@cowell.dev",
+		},
+	)
 }

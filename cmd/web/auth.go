@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/micahco/racket-connections/internal/crypto"
@@ -210,18 +211,32 @@ func (app *application) handleAuthSignupPost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	link := fmt.Sprintf("%s/auth/register?token=%s", app.baseURL, token)
+	// Create link reference to auth endpoint
+	ref, err := url.Parse("/auth/register")
+	if err != nil {
+		app.serverError(w, r, err)
 
-	if app.isDevelopment {
-		fmt.Println("Verification link:", link)
+		return
 	}
 
-	app.background(func() {
-		err = app.mailer.Send(form.email, "email_verification.tmpl", link)
-		if err != nil {
-			app.errorLog.Println(err)
-		}
-	})
+	// Set token query
+	q := ref.Query()
+	q.Set("token", token)
+	ref.RawQuery = q.Encode()
+
+	link := app.baseURL.ResolveReference(ref)
+
+	// Disable mailer during development during alpha stage
+	if app.isDevelopment {
+		fmt.Println("Verification link:", link)
+	} else {
+		app.background(func() {
+			err = app.mailer.Send(form.email, "email_verification.tmpl", link)
+			if err != nil {
+				app.errorLog.Println(err)
+			}
+		})
+	}
 
 	err = app.models.Verification.Insert(token, form.email)
 	if err != nil {
@@ -466,6 +481,7 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 	exists, err := app.models.User.ExistsEmail(form.email)
 	if err != nil {
 		app.serverError(w, r, err)
+
 		return
 	}
 
@@ -489,18 +505,32 @@ func (app *application) handleAuthResetPost(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	link := fmt.Sprintf("%s/auth/reset/update?token=%s", app.baseURL, token)
+	// Create link reference to auth endpoint
+	ref, err := url.Parse("/auth/reset/update")
+	if err != nil {
+		app.serverError(w, r, err)
 
-	if app.isDevelopment {
-		fmt.Println("Reset link:", link)
+		return
 	}
 
-	app.background(func() {
-		err = app.mailer.Send(form.email, "reset_password.tmpl", link)
-		if err != nil {
-			app.errorLog.Println(err)
-		}
-	})
+	// Set token query
+	q := ref.Query()
+	q.Set("token", token)
+	ref.RawQuery = q.Encode()
+
+	link := app.baseURL.ResolveReference(ref)
+
+	// Disable mailer during development during alpha stage
+	if app.isDevelopment {
+		fmt.Println("Reset link:", link.String())
+	} else {
+		app.background(func() {
+			err = app.mailer.Send(form.email, "reset_password.tmpl", link.String())
+			if err != nil {
+				app.errorLog.Println(err)
+			}
+		})
+	}
 
 	err = app.models.Verification.Insert(token, form.email)
 	if err != nil {

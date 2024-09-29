@@ -184,7 +184,6 @@ func (app *application) handlePostsIdDeleteGet(w http.ResponseWriter, r *http.Re
 
 	postID, err := strconv.Atoi(idParam)
 	if err != nil {
-		fmt.Println(2)
 		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
@@ -192,7 +191,6 @@ func (app *application) handlePostsIdDeleteGet(w http.ResponseWriter, r *http.Re
 
 	p, err := app.models.Post.GetDetails(postID)
 	if err != nil {
-		fmt.Println(3)
 		app.renderError(w, r, http.StatusBadRequest, "")
 
 		return
