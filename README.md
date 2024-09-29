@@ -11,12 +11,11 @@ Guide for VS Code using a [Dev Container](https://code.visualstudio.com/docs/dev
 
 1. Start VS Code and run **Dev Containers: Clone Repository in Container Volume...** from the Command Palette.
 
-1. Select **GitHub** as the remote source.
+1. Select **Clone a repository from GitHub in a Container Volume**.
 
-1. Select the repository that you just forked: **username/racket-connections** to initiate the container build. This may take a while. Once it is done, you should see a bunch of SQL queries being outputted to the dev container terminal, indicating that the post create `setup.sh` script has successfully executed.
+1. Select the repository that you just forked: **username/racket-connections** then **main** branch to initiate the container build. This may take a while. Once it is done, you should see a bunch of SQL queries being outputted to the dev container terminal, indicating that the post create `setup.sh` script has successfully executed.
 
-1. Open a new terminal window and run `make dev`. This may take a while the first time while the Go CLI downloads all the necessary dependencies.
-
+1. Open a new terminal window and run `make dev`. This may take a second while the Go CLI downloads the required packages.
 ## Environment
 
 Runtime variables (secrets) are stored in a `.env` file. See `.env.public` for an example.
