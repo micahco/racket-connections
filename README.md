@@ -2,30 +2,25 @@
 
 Racket Connections is an online board for OSU students interested in playing court sports and making friends.
 
+
 ## Development
 
-1. Clone the repo.
+Guide for VS Code using a [Dev Container](https://code.visualstudio.com/docs/devcontainers/containers).
 
-1. Open directory with VS Code in [Dev Container](https://code.visualstudio.com/docs/devcontainers/containers).
+1. Fork the repository to your GitHub account.
 
-1. Execute the scripts in the `sql` directory to build the database schema and insert mock data:
-    ```
-    for file in sql/*; do [ -f "$file" ] && cat "$file" | psql -h localhost -d postgres -U postgres ; done
-    ```
+1. Start VS Code and run **Dev Containers: Clone Repository in Container Volume...** from the Command Palette.
 
-1. Launch the development server:
+1. Select **GitHub** as the remote source.
 
-    ```
-    make dev
-    ```
+1. Select the repository that you just forked: **username/racket-connections** to initiate the container build. This may take a while. Once it is done, you should see a bunch of SQL queries being outputted to the dev container terminal, indicating that the post create `setup.sh` script has successfully executed.
+
+1. Open a new terminal window and run `make dev`. This may take a while the first time while the Go CLI downloads all the necessary dependencies.
 
 ## Environment
 
-Runtime variables are stored in a `.env` file:
+Runtime variables (secrets) are stored in a `.env` file. See `.env.public` for an example.
 
-    DATABASE_URL=postgresql://postgres:postgres@localhost/postgres
-    HOSTNAME=http://localhost:4000
-    SMTP_HOST=****
-    SMTP_PORT=****
-    SMTP_USER=****
-    SMTP_PASS=****
+## Resources
+
+* [lets-go.alexedwards.net](https://lets-go.alexedwards.net/)
