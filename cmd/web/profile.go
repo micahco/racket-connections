@@ -162,7 +162,7 @@ func (app *application) handleProfileContactsPost(w http.ResponseWriter, r *http
 	case "phone":
 		form.Validate(validator.Matches(form.contactValue, validator.PhoneRX), "invalid contact phone: must be a valid phone number")
 	case "other":
-		// cleanse for anything malicous
+		// TODO: cleanse for anything malicous
 	default:
 		app.renderError(w, r, http.StatusBadRequest, "")
 
