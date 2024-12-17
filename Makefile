@@ -14,4 +14,7 @@ css-minify:
 
 dev:
 	${MAKE} -j2 css run
+
+deploy:
+	fly deploy
 	

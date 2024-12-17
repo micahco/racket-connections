@@ -64,7 +64,7 @@ func (app *application) routes() http.Handler {
 
 			r.Get("/", app.handlePostsGet)
 			r.Post("/", app.handlePostsPost)
-			r.Get("/available", app.handlePostsAvailableGet)
+			r.Get("/sync", app.handlePostsSyncGet)
 			r.Get("/new", app.handlePostsNewGet)
 			r.Post("/new", app.handlePostsNewPost)
 			r.NotFound(app.handleNotFound)

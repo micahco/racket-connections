@@ -70,7 +70,7 @@ func (app *application) handlePostsGet(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "posts.html", data)
 }
 
-func (app *application) handlePostsAvailableGet(w http.ResponseWriter, r *http.Request) {
+func (app *application) handlePostsSyncGet(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
 	suid, err := app.getSessionUserID(r)
